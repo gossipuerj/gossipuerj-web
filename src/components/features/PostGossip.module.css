@@ -1,0 +1,143 @@
+.container {
+  background: #fff;
+  border: 4px solid #000;
+  border-radius: 0;
+  padding: 24px;
+  margin-bottom: 40px;
+  box-shadow: 12px 12px 0 #000;
+  position: relative;
+  z-index: 10;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.targetInput {
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 0;
+  padding: 12px 16px;
+  color: #000;
+  font-family: inherit;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.targetInput:focus {
+  outline: none;
+  background: var(--accent);
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.textarea {
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 0;
+  padding: 16px;
+  color: #000;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 600;
+  min-height: 120px;
+  resize: none;
+  margin-bottom: 16px;
+  transition: all 0.2s ease;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #000;
+  background: #fafafa;
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 #000;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 3px solid #000;
+}
+
+.select {
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 0;
+  padding: 8px 12px;
+  color: #000;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.select option {
+  background: #fff;
+  color: #000;
+}
+
+.charCount {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #000;
+}
+
+.submitBtn {
+  background: var(--secondary);
+  border: 3px solid #000;
+  padding: 12px 24px;
+  border-radius: 0;
+  color: #000;
+  font-weight: 900;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 4px 4px 0 #000;
+  text-transform: uppercase;
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translate(-4px, -4px);
+  box-shadow: 8px 8px 0 #000;
+  background: var(--primary);
+  color: #fff;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+  box-shadow: none;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .bottom {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .submitBtn {
+    flex: 1;
+    min-width: 150px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+
+  .select {
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+
+  .charCount {
+    font-size: 0.75rem;
+  }
+}
