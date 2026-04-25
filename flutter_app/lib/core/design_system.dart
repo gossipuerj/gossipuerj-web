@@ -150,8 +150,11 @@ class ShellFrame extends StatelessWidget {
                 onNavigate: onNavigate,
                 visible: !showMobileNav,
               ),
-              Expanded(child: child),
-              const _Footer(),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(children: [child, const _Footer()]),
+                ),
+              ),
             ],
           ),
         ),
@@ -385,12 +388,10 @@ class PageContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth),
-          child: Padding(padding: padding, child: child),
-        ),
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: Padding(padding: padding, child: child),
       ),
     );
   }
