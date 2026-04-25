@@ -253,32 +253,63 @@ class _FeedPageState extends ConsumerState<FeedPage> {
                 ),
               ),
               const SizedBox(height: 16, width: 16),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (final category in categories)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        child: GlossipButton(
-                          label: category,
-                          background: selectedCategory == category
-                              ? GlossipColors.primary
-                              : Colors.white,
-                          foreground: selectedCategory == category
-                              ? Colors.white
-                              : Colors.black,
-                          onPressed: () =>
-                              setState(() => selectedCategory = category),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 8,
+              if (width < 600)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final category in categories)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: GlossipButton(
+                            label: category,
+                            background: selectedCategory == category
+                                ? GlossipColors.primary
+                                : Colors.white,
+                            foreground: selectedCategory == category
+                                ? Colors.white
+                                : Colors.black,
+                            onPressed: () =>
+                                setState(() => selectedCategory = category),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 8,
+                            ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
+                )
+              else
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        for (final category in categories)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: GlossipButton(
+                              label: category,
+                              background: selectedCategory == category
+                                  ? GlossipColors.primary
+                                  : Colors.white,
+                              foreground: selectedCategory == category
+                                  ? Colors.white
+                                  : Colors.black,
+                              onPressed: () =>
+                                  setState(() => selectedCategory = category),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 8,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 32),
