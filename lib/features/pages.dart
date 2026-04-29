@@ -2281,7 +2281,7 @@ class _GossipCardState extends ConsumerState<GossipCard> {
     final isAuthor = post.authorId == controller.currentUser?.id;
     final timeLabel = DateFormat.Hm("pt_BR").format(post.timestamp);
 
-    return ArtPopCard(
+    return HoverArtPopCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -3047,7 +3047,7 @@ class _Tag extends StatelessWidget {
   }
 }
 
-class _ActionChip extends StatelessWidget {
+class _ActionChip extends StatefulWidget {
   const _ActionChip({required this.label, this.active = false, this.onTap});
 
   final String label;
@@ -3055,23 +3055,69 @@ class _ActionChip extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
+  State<_ActionChip> createState() => _ActionChipState();
+}
+
+class _ActionChipState extends State<_ActionChip> {
+  bool hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: active ? Colors.black : Colors.white,
-          border: Border.all(color: Colors.black, width: 3),
-          boxShadow: const [
-            BoxShadow(color: Colors.black, offset: Offset(3, 3)),
-          ],
-        ),
-        child: Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            color: active ? Colors.white : Colors.black,
-            fontWeight: FontWeight.w900,
+    final foregroundColor = widget.active ? Colors.black : Colors.white;
+    final foregroundTextColor = widget.active ? Colors.white : Colors.black;
+
+    return MouseRegion(
+      cursor: widget.onTap == null
+          ? MouseCursor.defer
+          : SystemMouseCursors.click,
+      onEnter: (_) => setState(() => hovered = true),
+      onExit: (_) => setState(() => hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 3, bottom: 3),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: 3,
+                top: 3,
+                right: -3,
+                bottom: -3,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  curve: Curves.easeOut,
+                  decoration: BoxDecoration(
+                    color: hovered ? GlossipColors.accent : Colors.black,
+                    border: Border.all(color: Colors.black, width: 3),
+                  ),
+                ),
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOut,
+                transform: Matrix4.translationValues(
+                  hovered ? -3 : 0,
+                  hovered ? -3 : 0,
+                  0,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: foregroundColor,
+                  border: Border.all(color: Colors.black, width: 3),
+                ),
+                child: Text(
+                  widget.label.toUpperCase(),
+                  style: TextStyle(
+                    color: foregroundTextColor,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
