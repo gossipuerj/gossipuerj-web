@@ -4,6 +4,7 @@ import "package:file_picker/file_picker.dart";
 import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:go_router/go_router.dart";
+import "package:google_fonts/google_fonts.dart";
 import "package:image/image.dart" as img;
 import "package:intl/intl.dart";
 
@@ -85,7 +86,7 @@ class _FeedPageState extends ConsumerState<FeedPage> {
                     ),
                     style: const TextStyle(
                       color: Colors.black,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
@@ -102,7 +103,7 @@ class _FeedPageState extends ConsumerState<FeedPage> {
                     ),
                     style: const TextStyle(
                       color: Colors.black,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                       fontSize: 18,
                     ),
                   ),
@@ -131,11 +132,12 @@ class _FeedPageState extends ConsumerState<FeedPage> {
                         "${contentController.text.length}/280",
                         style: const TextStyle(
                           color: Colors.black,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                       GlossipButton(
                         label: "Publicar Anonimamente",
+                        emphasizedLabel: true,
                         onPressed: contentController.text.trim().isEmpty
                             ? null
                             : () async {
@@ -189,6 +191,14 @@ class _FeedPageState extends ConsumerState<FeedPage> {
                     color: Colors.black,
                     fontWeight: FontWeight.w900,
                     fontSize: 24,
+                    letterSpacing: -0.6,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black26,
+                        offset: Offset(0.8, 0),
+                        blurRadius: 0,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -287,6 +297,19 @@ class _FeedHeroText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleStyle = GoogleFonts.urbanist(
+      color: Colors.white,
+      fontWeight: FontWeight.w900,
+      fontSize: isCompact ? 46 : 72,
+      height: 1,
+      letterSpacing: -3.1,
+      shadows: const [
+        Shadow(color: Colors.black38, offset: Offset(1.2, 0), blurRadius: 0),
+        Shadow(color: Colors.black38, offset: Offset(2.4, 0), blurRadius: 0),
+        Shadow(color: Colors.black26, offset: Offset(3.2, 0), blurRadius: 0),
+      ],
+    );
+
     return Column(
       crossAxisAlignment: isCompact
           ? CrossAxisAlignment.center
@@ -295,24 +318,28 @@ class _FeedHeroText extends StatelessWidget {
         RichText(
           textAlign: isCompact ? TextAlign.center : TextAlign.left,
           text: TextSpan(
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: isCompact ? 44 : 68,
-              height: 0.95,
-            ),
+            style: titleStyle,
             children: [
-              const TextSpan(text: "O que está rolando na "),
-              TextSpan(
-                text: "UERJ",
-                style: TextStyle(
-                  foreground: Paint()
-                    ..shader = const LinearGradient(
-                      colors: [
-                        GlossipColors.primary,
-                        GlossipColors.secondary,
+              const TextSpan(text: "O QUE ESTÁ ROLANDO NA "),
+              WidgetSpan(
+                alignment: PlaceholderAlignment.baseline,
+                baseline: TextBaseline.alphabetic,
+                child: ShaderMask(
+                  blendMode: BlendMode.srcIn,
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [GlossipColors.primary, GlossipColors.secondary],
+                  ).createShader(bounds),
+                  child: Text(
+                    "UERJ",
+                    style: titleStyle.copyWith(
+                      shadows: const [
+                        Shadow(
+                          color: Color.fromRGBO(255, 0, 255, 0.5),
+                          blurRadius: 10,
+                        ),
                       ],
-                    ).createShader(Rect.fromLTWH(0, 0, 180, 60)),
+                    ),
+                  ),
                 ),
               ),
               const TextSpan(text: "?"),
@@ -337,6 +364,14 @@ class _FeedHeroText extends StatelessWidget {
                 color: Colors.black,
                 fontWeight: FontWeight.w900,
                 fontSize: 20,
+                letterSpacing: -0.4,
+                shadows: [
+                  Shadow(
+                    color: Colors.black26,
+                    offset: Offset(0.8, 0),
+                    blurRadius: 0,
+                  ),
+                ],
               ),
             ),
           ),
@@ -411,7 +446,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               const SizedBox(height: 8),
@@ -428,7 +463,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 children: [
                   const Text(
                     " @ DO INSTAGRAM",
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 8),
                   _GlassField(
@@ -438,7 +473,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   const SizedBox(height: 24),
                   const Text(
                     "SENHA",
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 8),
                   _GlassField(
@@ -510,7 +545,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ? "Carregando..."
                               : (isLogin ? "Entrar" : "Registrar"),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontWeight: FontWeight.w800),
+                          style: const TextStyle(fontWeight: FontWeight.w900),
                         ),
                       ),
                     ),
@@ -533,7 +568,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       isLogin ? "Crie agora" : "Faça login",
                       style: const TextStyle(
                         color: GlossipColors.secondary,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
@@ -645,7 +680,7 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
                         "Você precisa estar logado com seu @ do Instagram para dar like nos perfis.",
                         style: TextStyle(
                           color: Colors.black,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w900,
                           fontSize: 18,
                         ),
                       ),
@@ -684,7 +719,7 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
                           ),
                           style: const TextStyle(
                             color: Colors.black,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                             fontSize: 18,
                           ),
                         ),
@@ -914,7 +949,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                                           color: Colors.black.withValues(
                                             alpha: 0.6,
                                           ),
-                                          fontWeight: FontWeight.w700,
+                                          fontWeight: FontWeight.w800,
                                         ),
                                       ),
                                     ],
@@ -924,7 +959,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                                     conversation.lastMessage,
                                     style: const TextStyle(
                                       color: Colors.black,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -995,7 +1030,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                                 "online",
                                 style: TextStyle(
                                   color: Colors.black,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w800,
                                 ),
                               ),
                             ],
@@ -1042,7 +1077,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                                     message.text,
                                     style: TextStyle(
                                       color: mine ? Colors.white : Colors.black,
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.w800,
                                       fontSize: 16,
                                     ),
                                   ),
@@ -1055,7 +1090,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                                         color:
                                             (mine ? Colors.white : Colors.black)
                                                 .withValues(alpha: 0.8),
-                                        fontWeight: FontWeight.w800,
+                                        fontWeight: FontWeight.w900,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -1094,7 +1129,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                               ),
                               style: const TextStyle(
                                 color: Colors.black,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ),
@@ -1376,7 +1411,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   "Escolha se deseja que seu perfil seja listado na página de Crushes para outros alunos.",
                   style: TextStyle(
                     color: Colors.black,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -1797,7 +1832,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                                   "Aproveite para estudar no 11º andar! 📚",
                                   style: TextStyle(
                                     color: Colors.black,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ],
@@ -1851,7 +1886,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                                     event.description,
                                     style: const TextStyle(
                                       color: Colors.black,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                   const SizedBox(height: 16),
@@ -1897,10 +1932,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
 }
 
 class _ProfileHeaderText extends StatelessWidget {
-  const _ProfileHeaderText({
-    required this.username,
-    required this.compact,
-  });
+  const _ProfileHeaderText({required this.username, required this.compact});
 
   final String username;
   final bool compact;
@@ -1926,10 +1958,7 @@ class _ProfileHeaderText extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           child: const Text(
             "Membro da comunidade GlossipUerj",
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w800,
-            ),
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
           ),
         ),
       ],
@@ -2287,7 +2316,7 @@ class _GossipCardState extends ConsumerState<GossipCard> {
                         text: TextSpan(
                           style: const TextStyle(
                             color: Colors.black,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                           ),
                           children: [
                             const TextSpan(text: "Para: "),
@@ -2354,7 +2383,7 @@ class _GossipCardState extends ConsumerState<GossipCard> {
                     timeLabel,
                     style: TextStyle(
                       color: Colors.black.withValues(alpha: 0.5),
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -2370,7 +2399,7 @@ class _GossipCardState extends ConsumerState<GossipCard> {
                 decoration: const InputDecoration.collapsed(hintText: ""),
                 style: const TextStyle(
                   color: Colors.black,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
@@ -2394,9 +2423,17 @@ class _GossipCardState extends ConsumerState<GossipCard> {
               post.content,
               style: const TextStyle(
                 color: Colors.black,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w900,
                 fontSize: 20,
                 height: 1.4,
+                letterSpacing: -0.2,
+                shadows: [
+                  Shadow(
+                    color: Colors.black12,
+                    offset: Offset(0.6, 0),
+                    blurRadius: 0,
+                  ),
+                ],
               ),
             ),
             if (post.imageUrl != null) ...[
@@ -2508,7 +2545,7 @@ class _GossipCardState extends ConsumerState<GossipCard> {
                             ),
                             style: const TextStyle(
                               color: Colors.black,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -2584,7 +2621,7 @@ class ProfileGridCard extends ConsumerWidget {
               "@${profile.username}",
               style: const TextStyle(
                 color: GlossipColors.primary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
               ),
             ),
           const SizedBox(height: 8),
@@ -2820,7 +2857,7 @@ class _DropdownField extends StatelessWidget {
           dropdownColor: Colors.white,
           style: const TextStyle(
             color: Colors.black,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w900,
           ),
           items: [
             for (final item in normalizedItems)
@@ -2889,7 +2926,7 @@ class _LabeledTextField extends StatelessWidget {
             decoration: const InputDecoration.collapsed(hintText: ""),
             style: const TextStyle(
               color: Colors.black,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),
@@ -3081,7 +3118,7 @@ class _MetaText extends StatelessWidget {
           label,
           style: const TextStyle(
             color: Colors.black,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ],
