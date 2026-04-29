@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter_localizations/flutter_localizations.dart";
 
-import "../core/design_system.dart";
+import "../core/theme/glossip_theme.dart";
 import "router.dart";
 
 class GlossipApp extends StatelessWidget {

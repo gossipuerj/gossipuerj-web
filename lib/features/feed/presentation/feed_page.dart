@@ -1,0 +1,115 @@
+import "package:flutter/material.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
+
+import "../../../core/theme/app_breakpoints.dart";
+import "../../../shared/layout/page_container.dart";
+import "../../../shared/providers/app_providers.dart";
+import "../../../shared/widgets/art_pop_card.dart";
+import "../../../shared/widgets/gretchen_blob.dart";
+import "widgets/feed_composer.dart";
+import "widgets/feed_filter_bar.dart";
+import "widgets/feed_hero.dart";
+import "widgets/gossip_card.dart";
+
+class FeedPage extends ConsumerStatefulWidget {
+  const FeedPage({super.key});
+
+  @override
+  ConsumerState<FeedPage> createState() => _FeedPageState();
+}
+
+class _FeedPageState extends ConsumerState<FeedPage> {
+  final targetController = TextEditingController();
+  final contentController = TextEditingController();
+  String selectedCategory = "Todos";
+  String composerCategory = "Fofoca";
+
+  @override
+  void dispose() {
+    targetController.dispose();
+    contentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final feedController = ref.watch(feedControllerProvider);
+    final width = MediaQuery.sizeOf(context).width;
+    final isCompact = width < AppBreakpoints.tablet;
+    final categories = const ["Todos", "Fofoca", "Desabafo", "Paquera"];
+    final filtered = selectedCategory == "Todos"
+        ? feedController.gossips
+        : feedController.gossips
+              .where((item) => item.category == selectedCategory)
+              .toList();
+
+    return PageContainer(
+      maxWidth: 1100,
+      padding: EdgeInsets.fromLTRB(
+        isCompact ? 16 : 24,
+        isCompact ? 80 : 100,
+        isCompact ? 16 : 24,
+        40,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Flex(
+            direction: isCompact ? Axis.vertical : Axis.horizontal,
+            crossAxisAlignment: isCompact
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (isCompact)
+                const FeedHeroText(isCompact: true)
+              else
+                const Expanded(child: FeedHeroText(isCompact: false)),
+              const SizedBox(height: 32, width: 32),
+              const GretchenBlob(),
+            ],
+          ),
+          const SizedBox(height: 40),
+          FeedComposer(
+            targetController: targetController,
+            contentController: contentController,
+            composerCategory: composerCategory,
+            onCategoryChanged: (value) =>
+                setState(() => composerCategory = value),
+            onChanged: () => setState(() {}),
+          ),
+          const SizedBox(height: 16),
+          FeedFilterBar(
+            width: width,
+            categories: categories,
+            selectedCategory: selectedCategory,
+            onCategorySelected: (value) =>
+                setState(() => selectedCategory = value),
+          ),
+          const SizedBox(height: 32),
+          Column(
+            children: [
+              if (filtered.isEmpty)
+                const ArtPopCard(
+                  child: Center(
+                    child: Text(
+                      "NENHUMA FOFOCA ENCONTRADA NESTA CATEGORIA.",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              for (final gossip in filtered)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: GossipCard(post: gossip),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

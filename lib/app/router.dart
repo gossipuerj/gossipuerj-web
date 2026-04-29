@@ -1,13 +1,9 @@
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:go_router/go_router.dart";
 
-import "../core/app_controller.dart";
-import "../core/design_system.dart";
+import "../shared/layout/shell_frame.dart";
+import "../shared/providers/app_providers.dart";
 import "../features/pages.dart";
-
-final appControllerProvider = ChangeNotifierProvider<AppController>((ref) {
-  return AppController();
-});
 
 final GoRouter appRouter = GoRouter(
   initialLocation: "/",
@@ -16,7 +12,7 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state, child) {
         return Consumer(
           builder: (context, ref, _) {
-            final controller = ref.watch(appControllerProvider);
+            final controller = ref.watch(sessionControllerProvider);
             return ShellFrame(
               currentPath: state.uri.path,
               isLoggedIn: controller.isLoggedIn,
