@@ -243,35 +243,85 @@ class _TopNav extends StatelessWidget {
                 spacing: 18,
                 children: [
                   for (final item in items)
-                    GestureDetector(
+                    _TopNavDestination(
+                      label: item.label,
+                      selected: currentPath == item.path,
                       onTap: () => onNavigate(item.path),
-                      child: Container(
-                        decoration: currentPath == item.path
-                            ? const BoxDecoration(
-                                color: Colors.black,
-                                border: Border.fromBorderSide(
-                                  BorderSide(color: Colors.black, width: 2),
-                                ),
-                              )
-                            : null,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        child: Text(
-                          item.label.toUpperCase(),
-                          style: TextStyle(
-                            color: currentPath == item.path
-                                ? Colors.white
-                                : Colors.black,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
                     ),
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TopNavDestination extends StatefulWidget {
+  const _TopNavDestination({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_TopNavDestination> createState() => _TopNavDestinationState();
+}
+
+class _TopNavDestinationState extends State<_TopNavDestination> {
+  bool hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final showHover = hovered && !widget.selected;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => hovered = true),
+      onExit: (_) => setState(() => hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(end: showHover ? 1.06 : 1),
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          builder: (context, scale, child) {
+            return Transform.scale(scale: scale, child: child);
+          },
+          child: AnimatedRotation(
+            turns: showHover ? 0.008 : 0,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: widget.selected
+                    ? Colors.black
+                    : showHover
+                    ? const Color(0xFF57FDFF)
+                    : Colors.transparent,
+                border: Border.all(
+                  color: widget.selected || showHover
+                      ? Colors.black
+                      : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+              child: Text(
+                widget.label.toUpperCase(),
+                style: TextStyle(
+                  color: widget.selected ? Colors.white : Colors.black,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
           ),
         ),
       ),
