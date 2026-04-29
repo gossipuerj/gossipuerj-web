@@ -53,6 +53,7 @@ class _FeedPageState extends ConsumerState<FeedPage> {
         40,
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Flex(
@@ -62,71 +63,10 @@ class _FeedPageState extends ConsumerState<FeedPage> {
                 : CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                flex: isCompact ? 0 : 1,
-                child: Column(
-                  crossAxisAlignment: isCompact
-                      ? CrossAxisAlignment.center
-                      : CrossAxisAlignment.start,
-                  children: [
-                    RichText(
-                      textAlign: isCompact ? TextAlign.center : TextAlign.left,
-                      text: TextSpan(
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: isCompact ? 44 : 68,
-                          height: 0.95,
-                        ),
-                        children: [
-                          TextSpan(text: "O que está rolando na "),
-                          TextSpan(
-                            text: "UERJ",
-                            style: TextStyle(
-                              foreground: Paint()
-                                ..shader = const LinearGradient(
-                                  colors: [
-                                    GlossipColors.primary,
-                                    GlossipColors.secondary,
-                                  ],
-                                ).createShader(Rect.fromLTWH(0, 0, 180, 60)),
-                            ),
-                          ),
-                          TextSpan(text: "?"),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Transform.rotate(
-                      angle: -0.02,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: GlossipColors.accent,
-                          border: Border.all(color: Colors.black, width: 4),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black,
-                              offset: Offset(6, 6),
-                            ),
-                          ],
-                        ),
-                        child: const Text(
-                          "FOFOCAS ANÔNIMAS, SEGREDOS E CRUSHES DO CAMPUS.",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              if (isCompact)
+                _FeedHeroText(isCompact: true)
+              else
+                const Expanded(child: _FeedHeroText(isCompact: false)),
               const SizedBox(height: 32, width: 32),
               const GretchenBlob(),
             ],
@@ -336,6 +276,72 @@ class _FeedPageState extends ConsumerState<FeedPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _FeedHeroText extends StatelessWidget {
+  const _FeedHeroText({required this.isCompact});
+
+  final bool isCompact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: isCompact
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
+      children: [
+        RichText(
+          textAlign: isCompact ? TextAlign.center : TextAlign.left,
+          text: TextSpan(
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              fontSize: isCompact ? 44 : 68,
+              height: 0.95,
+            ),
+            children: [
+              const TextSpan(text: "O que está rolando na "),
+              TextSpan(
+                text: "UERJ",
+                style: TextStyle(
+                  foreground: Paint()
+                    ..shader = const LinearGradient(
+                      colors: [
+                        GlossipColors.primary,
+                        GlossipColors.secondary,
+                      ],
+                    ).createShader(Rect.fromLTWH(0, 0, 180, 60)),
+                ),
+              ),
+              const TextSpan(text: "?"),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        Transform.rotate(
+          angle: -0.02,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: GlossipColors.accent,
+              border: Border.all(color: Colors.black, width: 4),
+              boxShadow: const [
+                BoxShadow(color: Colors.black, offset: Offset(6, 6)),
+              ],
+            ),
+            child: const Text(
+              "FOFOCAS ANÔNIMAS, SEGREDOS E CRUSHES DO CAMPUS.",
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w900,
+                fontSize: 20,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -690,52 +696,47 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final vertical = constraints.maxWidth < 768;
-                    final children = [
-                      Expanded(
-                        child: _DropdownGroup(
-                          label: "Curso",
-                          value: selectedCourse,
-                          items: const ["Todos", ...uerjCourses],
-                          onChanged: (value) =>
-                              setState(() => selectedCourse = value),
-                        ),
-                      ),
-                      Expanded(
-                        child: _DropdownGroup(
-                          label: "Gênero",
-                          value: selectedGender,
-                          items: genders,
-                          onChanged: (value) =>
-                              setState(() => selectedGender = value),
-                        ),
-                      ),
-                      Expanded(
-                        child: _DropdownGroup(
-                          label: "Orientação",
-                          value: selectedOrientation,
-                          items: orientations,
-                          onChanged: (value) =>
-                              setState(() => selectedOrientation = value),
-                        ),
-                      ),
-                    ];
+                    final courseDropdown = _DropdownGroup(
+                      label: "Curso",
+                      value: selectedCourse,
+                      items: const ["Todos", ...uerjCourses],
+                      onChanged: (value) =>
+                          setState(() => selectedCourse = value),
+                    );
+                    final genderDropdown = _DropdownGroup(
+                      label: "Gênero",
+                      value: selectedGender,
+                      items: genders,
+                      onChanged: (value) =>
+                          setState(() => selectedGender = value),
+                    );
+                    final orientationDropdown = _DropdownGroup(
+                      label: "Orientação",
+                      value: selectedOrientation,
+                      items: orientations,
+                      onChanged: (value) =>
+                          setState(() => selectedOrientation = value),
+                    );
                     return vertical
                         ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              for (final child in children) ...[
-                                child,
-                                const SizedBox(height: 16),
-                              ],
+                              courseDropdown,
+                              const SizedBox(height: 16),
+                              genderDropdown,
+                              const SizedBox(height: 16),
+                              orientationDropdown,
                             ],
                           )
                         : Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              children[0],
+                              Expanded(child: courseDropdown),
                               const SizedBox(width: 20),
-                              children[1],
+                              Expanded(child: genderDropdown),
                               const SizedBox(width: 20),
-                              children[2],
+                              Expanded(child: orientationDropdown),
                             ],
                           );
                   },
@@ -1242,6 +1243,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                 ),
                 Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Flex(
                       direction: compact ? Axis.vertical : Axis.horizontal,
@@ -1260,37 +1262,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           width: compact ? 0 : 32,
                           height: compact ? 20 : 0,
                         ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: compact
-                                ? CrossAxisAlignment.center
-                                : CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "@${user.username}".toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 40,
-                                ),
-                              ),
-                              Container(
-                                color: GlossipColors.accent,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                child: const Text(
-                                  "Membro da comunidade GlossipUerj",
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ],
+                        if (compact)
+                          _ProfileHeaderText(
+                            username: user.username,
+                            compact: true,
+                          )
+                        else
+                          Expanded(
+                            child: _ProfileHeaderText(
+                              username: user.username,
+                              compact: false,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ],
@@ -1302,66 +1285,68 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           LayoutBuilder(
             builder: (context, constraints) {
               final vertical = constraints.maxWidth < 600;
-              final cards = [
-                Expanded(
-                  child: ArtPopCard(
-                    shadowOffset: const Offset(8, 8),
-                    child: Column(
-                      children: [
-                        Text(
-                          "${myPosts.length}",
-                          style: const TextStyle(
-                            color: GlossipColors.primary,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 48,
-                          ),
-                        ),
-                        const Text(
-                          "FOFOCAS POSTADAS",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
+              final postsCard = ArtPopCard(
+                shadowOffset: const Offset(8, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "${myPosts.length}",
+                      style: const TextStyle(
+                        color: GlossipColors.primary,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 48,
+                      ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: ArtPopCard(
-                    shadowOffset: const Offset(8, 8),
-                    child: Column(
-                      children: [
-                        Text(
-                          myPosts.isEmpty ? "Novo" : "Ativo",
-                          style: const TextStyle(
-                            color: GlossipColors.primary,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 40,
-                          ),
-                        ),
-                        const Text(
-                          "STATUS",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
+                    const Text(
+                      "FOFOCAS POSTADAS",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ];
+              );
+              final statusCard = ArtPopCard(
+                shadowOffset: const Offset(8, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      myPosts.isEmpty ? "Novo" : "Ativo",
+                      style: const TextStyle(
+                        color: GlossipColors.primary,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 40,
+                      ),
+                    ),
+                    const Text(
+                      "STATUS",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              );
               return vertical
                   ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        cards[0],
+                        postsCard,
                         const SizedBox(height: 20),
-                        cards[1],
+                        statusCard,
                       ],
                     )
                   : Row(
-                      children: [cards[0], const SizedBox(width: 20), cards[1]],
+                      children: [
+                        Expanded(child: postsCard),
+                        const SizedBox(width: 20),
+                        Expanded(child: statusCard),
+                      ],
                     );
             },
           ),
@@ -1421,20 +1406,18 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final vertical = constraints.maxWidth < 600;
-                    final first = Expanded(
-                      child: _LabeledTextField(
-                        label: "Nome",
-                        controller: firstNameController,
-                      ),
+                    final first = _LabeledTextField(
+                      label: "Nome",
+                      controller: firstNameController,
                     );
-                    final second = Expanded(
-                      child: _LabeledTextField(
-                        label: "Sobrenome",
-                        controller: lastNameController,
-                      ),
+                    final second = _LabeledTextField(
+                      label: "Sobrenome",
+                      controller: lastNameController,
                     );
                     return vertical
                         ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               first,
                               const SizedBox(height: 20),
@@ -1443,9 +1426,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           )
                         : Row(
                             children: [
-                              first,
+                              Expanded(child: first),
                               const SizedBox(width: 20),
-                              second,
+                              Expanded(child: second),
                             ],
                           );
                   },
@@ -1540,42 +1523,45 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final vertical = constraints.maxWidth < 600;
-                    final one = Expanded(
-                      child: _DropdownGroup(
-                        label: "Gênero",
-                        value: gender,
-                        items: const [
-                          "Não informado",
-                          "Masculino",
-                          "Feminino",
-                          "Não-binário",
-                          "Outro",
-                        ],
-                        onChanged: (value) => setState(() => gender = value),
-                      ),
+                    final one = _DropdownGroup(
+                      label: "Gênero",
+                      value: gender,
+                      items: const [
+                        "Não informado",
+                        "Masculino",
+                        "Feminino",
+                        "Não-binário",
+                        "Outro",
+                      ],
+                      onChanged: (value) => setState(() => gender = value),
                     );
-                    final two = Expanded(
-                      child: _DropdownGroup(
-                        label: "Orientação Sexual",
-                        value: orientation,
-                        items: const [
-                          "Não informado",
-                          "Heterossexual",
-                          "Homossexual",
-                          "Bissexual",
-                          "Pansexual",
-                          "Asexual",
-                          "Outra",
-                        ],
-                        onChanged: (value) =>
-                            setState(() => orientation = value),
-                      ),
+                    final two = _DropdownGroup(
+                      label: "Orientação Sexual",
+                      value: orientation,
+                      items: const [
+                        "Não informado",
+                        "Heterossexual",
+                        "Homossexual",
+                        "Bissexual",
+                        "Pansexual",
+                        "Asexual",
+                        "Outra",
+                      ],
+                      onChanged: (value) => setState(() => orientation = value),
                     );
                     return vertical
                         ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [one, const SizedBox(height: 20), two],
                           )
-                        : Row(children: [one, const SizedBox(width: 20), two]);
+                        : Row(
+                            children: [
+                              Expanded(child: one),
+                              const SizedBox(width: 20),
+                              Expanded(child: two),
+                            ],
+                          );
                   },
                 ),
                 const SizedBox(height: 20),
@@ -1702,6 +1688,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
       maxWidth: 1100,
       padding: const EdgeInsets.fromLTRB(24, 80, 24, 40),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           const _HeroTitle(
             titleStart: "Calendário de ",
@@ -1713,129 +1700,36 @@ class _EventsPageState extends ConsumerState<EventsPage> {
             direction: isStacked ? Axis.vertical : Axis.horizontal,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: ArtPopCard(
-                  padding: EdgeInsets.all(width < 600 ? 16 : 32),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          _SquareIconButton(
-                            icon: Icons.chevron_left,
-                            onTap: () => _moveMonth(-1),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "${monthNames[month - 1]} $year".toUpperCase(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w900,
-                                fontSize: width < 600 ? 24 : 32,
-                              ),
-                            ),
-                          ),
-                          _SquareIconButton(
-                            icon: Icons.chevron_right,
-                            onTap: () => _moveMonth(1),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          for (final day in [
-                            "Dom",
-                            "Seg",
-                            "Ter",
-                            "Qua",
-                            "Qui",
-                            "Sex",
-                            "Sab",
-                          ])
-                            Expanded(
-                              child: Text(
-                                day,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: totalDays + startDay,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 7,
-                          crossAxisSpacing: width < 600 ? 6 : 12,
-                          mainAxisSpacing: width < 600 ? 6 : 12,
-                        ),
-                        itemBuilder: (context, index) {
-                          if (index < startDay) {
-                            return const SizedBox.shrink();
-                          }
-                          final day = index - startDay + 1;
-                          final dateKey =
-                              "$year-${month.toString().padLeft(2, "0")}-${day.toString().padLeft(2, "0")}";
-                          final selected = dateKey == selectedDate;
-                          final hasEvents =
-                              (controller.events[dateKey] ?? const [])
-                                  .isNotEmpty;
-                          return GestureDetector(
-                            onTap: () => setState(() => selectedDate = dateKey),
-                            child: Container(
-                              decoration: borderedBoxDecoration(
-                                color: selected ? Colors.black : Colors.white,
-                                shadowColor: selected
-                                    ? GlossipColors.primary
-                                    : Colors.black,
-                                shadowOffset: selected
-                                    ? const Offset(8, 8)
-                                    : Offset.zero,
-                                borderWidth: hasEvents ? 4 : 3,
-                              ),
-                              alignment: Alignment.center,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Text(
-                                    "$day",
-                                    style: TextStyle(
-                                      color: selected
-                                          ? Colors.white
-                                          : Colors.black,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: width < 600 ? 14 : 18,
-                                    ),
-                                  ),
-                                  if (hasEvents)
-                                    Positioned(
-                                      bottom: 8,
-                                      child: Container(
-                                        width: 12,
-                                        height: 12,
-                                        decoration: borderedBoxDecoration(
-                                          color: GlossipColors.secondary,
-                                          borderWidth: 2,
-                                          shadowOffset: const Offset(2, 2),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+              if (isStacked)
+                _EventsCalendarCard(
+                  width: width,
+                  year: year,
+                  month: month,
+                  monthNames: monthNames,
+                  totalDays: totalDays,
+                  startDay: startDay,
+                  selectedDate: selectedDate,
+                  events: controller.events,
+                  onMoveMonth: _moveMonth,
+                  onSelectDate: (dateKey) =>
+                      setState(() => selectedDate = dateKey),
+                )
+              else
+                Expanded(
+                  child: _EventsCalendarCard(
+                    width: width,
+                    year: year,
+                    month: month,
+                    monthNames: monthNames,
+                    totalDays: totalDays,
+                    startDay: startDay,
+                    selectedDate: selectedDate,
+                    events: controller.events,
+                    onMoveMonth: _moveMonth,
+                    onSelectDate: (dateKey) =>
+                        setState(() => selectedDate = dateKey),
                   ),
                 ),
-              ),
               SizedBox(width: isStacked ? 0 : 32, height: isStacked ? 24 : 0),
               SizedBox(
                 width: isStacked ? double.infinity : 400,
@@ -1995,6 +1889,193 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileHeaderText extends StatelessWidget {
+  const _ProfileHeaderText({
+    required this.username,
+    required this.compact,
+  });
+
+  final String username;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: compact
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
+      children: [
+        Text(
+          "@$username".toUpperCase(),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w900,
+            fontSize: 40,
+          ),
+        ),
+        Container(
+          color: GlossipColors.accent,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          child: const Text(
+            "Membro da comunidade GlossipUerj",
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EventsCalendarCard extends StatelessWidget {
+  const _EventsCalendarCard({
+    required this.width,
+    required this.year,
+    required this.month,
+    required this.monthNames,
+    required this.totalDays,
+    required this.startDay,
+    required this.selectedDate,
+    required this.events,
+    required this.onMoveMonth,
+    required this.onSelectDate,
+  });
+
+  final double width;
+  final int year;
+  final int month;
+  final List<String> monthNames;
+  final int totalDays;
+  final int startDay;
+  final String selectedDate;
+  final Map<String, List<UniversityEvent>> events;
+  final ValueChanged<int> onMoveMonth;
+  final ValueChanged<String> onSelectDate;
+
+  @override
+  Widget build(BuildContext context) {
+    return ArtPopCard(
+      padding: EdgeInsets.all(width < 600 ? 16 : 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              _SquareIconButton(
+                icon: Icons.chevron_left,
+                onTap: () => onMoveMonth(-1),
+              ),
+              Expanded(
+                child: Text(
+                  "${monthNames[month - 1]} $year".toUpperCase(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    fontSize: width < 600 ? 24 : 32,
+                  ),
+                ),
+              ),
+              _SquareIconButton(
+                icon: Icons.chevron_right,
+                onTap: () => onMoveMonth(1),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              for (final day in [
+                "Dom",
+                "Seg",
+                "Ter",
+                "Qua",
+                "Qui",
+                "Sex",
+                "Sab",
+              ])
+                Expanded(
+                  child: Text(
+                    day,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: totalDays + startDay,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              crossAxisSpacing: width < 600 ? 6 : 12,
+              mainAxisSpacing: width < 600 ? 6 : 12,
+            ),
+            itemBuilder: (context, index) {
+              if (index < startDay) {
+                return const SizedBox.shrink();
+              }
+              final day = index - startDay + 1;
+              final dateKey =
+                  "$year-${month.toString().padLeft(2, "0")}-${day.toString().padLeft(2, "0")}";
+              final selected = dateKey == selectedDate;
+              final hasEvents = (events[dateKey] ?? const []).isNotEmpty;
+              return GestureDetector(
+                onTap: () => onSelectDate(dateKey),
+                child: Container(
+                  decoration: borderedBoxDecoration(
+                    color: selected ? Colors.black : Colors.white,
+                    shadowColor: selected
+                        ? GlossipColors.primary
+                        : Colors.black,
+                    shadowOffset: selected ? const Offset(8, 8) : Offset.zero,
+                    borderWidth: hasEvents ? 4 : 3,
+                  ),
+                  alignment: Alignment.center,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Text(
+                        "$day",
+                        style: TextStyle(
+                          color: selected ? Colors.white : Colors.black,
+                          fontWeight: FontWeight.w900,
+                          fontSize: width < 600 ? 14 : 18,
+                        ),
+                      ),
+                      if (hasEvents)
+                        Positioned(
+                          bottom: 8,
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: borderedBoxDecoration(
+                              color: GlossipColors.secondary,
+                              borderWidth: 2,
+                              shadowOffset: const Offset(2, 2),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -2720,7 +2801,13 @@ class _DropdownField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final normalizedItems = <String>{
+      if (!items.contains(value)) value,
+      ...items,
+    }.toList();
+
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -2728,6 +2815,7 @@ class _DropdownField extends StatelessWidget {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
+          isExpanded: true,
           value: value,
           dropdownColor: Colors.white,
           style: const TextStyle(
@@ -2735,7 +2823,7 @@ class _DropdownField extends StatelessWidget {
             fontWeight: FontWeight.w800,
           ),
           items: [
-            for (final item in items)
+            for (final item in normalizedItems)
               DropdownMenuItem<String>(value: item, child: Text(item)),
           ],
           onChanged: (next) {
@@ -2765,7 +2853,8 @@ class _DropdownGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
         FieldLabel(label),
         const SizedBox(height: 8),
