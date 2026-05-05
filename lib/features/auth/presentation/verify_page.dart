@@ -1,7 +1,9 @@
 import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
+import "package:google_fonts/google_fonts.dart";
 
+import "../../../core/theme/glossip_colors.dart";
 import "../../../shared/layout/page_container.dart";
 import "../../../shared/widgets/art_pop_card.dart";
 import "../../../shared/widgets/buttons.dart";
@@ -60,50 +62,98 @@ class _VerifyPageState extends State<VerifyPage> {
         builder: (context, state) {
           final tokenMissing = widget.token == null || widget.token!.isEmpty;
           return PageContainer(
-            maxWidth: 640,
-            child: ArtPopCard(
-              child: Column(
-                children: [
-                  Text(
-                    tokenMissing
-                        ? "LINK INVÁLIDO"
-                        : state.status == AuthStatus.failure
-                        ? "NÃO FOI POSSÍVEL VALIDAR"
-                        : "VALIDANDO SEU ACESSO",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 28,
+            maxWidth: 450,
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: ArtPopCard(
+                color: const Color(0xFFFFF7FB),
+                shadowOffset: const Offset(14, 14),
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text.rich(
+                      TextSpan(
+                        text: "GLOSSIP",
+                        style: GoogleFonts.outfit(
+                          fontSize: 29,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
+                        ),
+                        children: const [
+                          TextSpan(
+                            text: "UERJ",
+                            style: TextStyle(color: GlossipColors.primary),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    tokenMissing
-                        ? "Esse link não contém um token válido."
-                        : state.status == AuthStatus.failure
-                        ? (state.message ?? "O link expirou ou é inválido.")
-                        : "Aguarde enquanto concluímos seu login.",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w700,
+                    const SizedBox(height: 32),
+                    Text(
+                      tokenMissing
+                          ? "Link inválido"
+                          : state.status == AuthStatus.failure
+                          ? "Não foi possível validar"
+                          : "Validando seu acesso",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  if (!tokenMissing && state.status == AuthStatus.submitting)
-                    const CircularProgressIndicator(),
-                  if (tokenMissing || state.status == AuthStatus.failure) ...[
-                    GlossipButton(
-                      label: "Voltar ao login",
-                      onPressed: () => context.go("/login"),
+                    const SizedBox(height: 8),
+                    Text(
+                      tokenMissing
+                          ? "Esse link não contém um token válido."
+                          : state.status == AuthStatus.failure
+                          ? (state.message ?? "O link expirou ou é inválido.")
+                          : "Aguarde enquanto concluímos seu login.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black.withValues(alpha: 0.65),
+                      ),
                     ),
+                    const SizedBox(height: 32),
+                    if (!tokenMissing && state.status == AuthStatus.submitting)
+                      const Center(child: CircularProgressIndicator()),
+                    if (tokenMissing || state.status == AuthStatus.failure)
+                      _VerifyButton(
+                        label: "Voltar ao login",
+                        onPressed: () => context.go("/login"),
+                      ),
                   ],
-                ],
+                ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _VerifyButton extends StatelessWidget {
+  const _VerifyButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: GlossipButton(
+        label: label,
+        onPressed: onPressed,
+        expanded: true,
+        emphasizedLabel: true,
+        foreground: Colors.white,
+        background: GlossipColors.primary,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       ),
     );
   }

@@ -162,28 +162,41 @@ class GlassField extends StatelessWidget {
     required this.controller,
     required this.hint,
     this.obscureText = false,
+    this.darkText = false,
+    this.onChanged,
   });
 
   final TextEditingController controller;
   final String hint;
   final bool obscureText;
+  final bool darkText;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-        borderRadius: BorderRadius.circular(12),
-      ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: darkText ? Colors.white : Colors.white.withValues(alpha: 0.05),
+          border: Border.all(
+            color: darkText
+                ? Colors.black.withValues(alpha: 0.18)
+                : Colors.white.withValues(alpha: 0.15),
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
       child: TextField(
         controller: controller,
         obscureText: obscureText,
-        style: const TextStyle(color: Colors.white),
+        onChanged: onChanged,
+        style: TextStyle(color: darkText ? Colors.black : Colors.white),
         decoration: InputDecoration.collapsed(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+          hintStyle: TextStyle(
+            color: darkText
+                ? Colors.black.withValues(alpha: 0.45)
+                : Colors.white.withValues(alpha: 0.6),
+          ),
         ),
       ),
     );

@@ -28,7 +28,13 @@ class AuthCubit extends Cubit<AuthState> {
         ),
       );
     } on AppException catch (error) {
-      emit(AuthState(status: AuthStatus.failure, message: error.message));
+      emit(
+        AuthState(
+          status: AuthStatus.failure,
+          message: error.message,
+          statusCode: error.statusCode,
+        ),
+      );
     }
   }
 
@@ -58,7 +64,13 @@ class AuthCubit extends Cubit<AuthState> {
         ),
       );
     } on AppException catch (error) {
-      emit(AuthState(status: AuthStatus.failure, message: error.message));
+      emit(
+        AuthState(
+          status: AuthStatus.failure,
+          message: error.message,
+          statusCode: error.statusCode,
+        ),
+      );
     }
   }
 
@@ -69,7 +81,13 @@ class AuthCubit extends Cubit<AuthState> {
       await _sessionCubit.refreshUser();
       emit(const AuthState(status: AuthStatus.verified));
     } on AppException catch (error) {
-      emit(AuthState(status: AuthStatus.failure, message: error.message));
+      emit(
+        AuthState(
+          status: AuthStatus.failure,
+          message: error.message,
+          statusCode: error.statusCode,
+        ),
+      );
     }
   }
 
