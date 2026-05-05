@@ -1,9 +1,9 @@
 import "package:flutter/material.dart";
-import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 
 import "../../../domain/models/university_event.dart";
 import "../../../shared/layout/page_container.dart";
-import "../../../shared/providers/app_providers.dart";
+import "../../../shared/state/mock_app_cubits.dart";
 import "../../../shared/utils/event_category_color.dart";
 import "../../../shared/widgets/art_pop_card.dart";
 import "../../../shared/widgets/buttons.dart";
@@ -11,14 +11,14 @@ import "../../../shared/widgets/labels.dart";
 import "widgets/add_event_dialog.dart";
 import "widgets/events_calendar_card.dart";
 
-class EventsPage extends ConsumerStatefulWidget {
+class EventsPage extends StatefulWidget {
   const EventsPage({super.key});
 
   @override
-  ConsumerState<EventsPage> createState() => _EventsPageState();
+  State<EventsPage> createState() => _EventsPageState();
 }
 
-class _EventsPageState extends ConsumerState<EventsPage> {
+class _EventsPageState extends State<EventsPage> {
   DateTime currentDate = DateTime(2026, 4, 1);
   String selectedDate = "2026-04-10";
 
@@ -30,7 +30,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = ref.watch(eventsControllerProvider);
+    final state = context.watch<EventsCubit>().state;
     final width = MediaQuery.sizeOf(context).width;
     final isStacked = width < 1000;
     final monthNames = const [
@@ -47,13 +47,11 @@ class _EventsPageState extends ConsumerState<EventsPage> {
       "Novembro",
       "Dezembro",
     ];
-
     final year = currentDate.year;
     final month = currentDate.month;
     final totalDays = DateUtils.getDaysInMonth(year, month);
     final startDay = DateTime(year, month, 1).weekday % 7;
-    final selectedEvents =
-        controller.events[selectedDate] ?? const <UniversityEvent>[];
+    final selectedEvents = state.events[selectedDate] ?? const <UniversityEvent>[];
 
     return PageContainer(
       maxWidth: 1100,
@@ -70,8 +68,8 @@ class _EventsPageState extends ConsumerState<EventsPage> {
             direction: isStacked ? Axis.vertical : Axis.horizontal,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (isStacked)
-                EventsCalendarCard(
+              Expanded(
+                child: EventsCalendarCard(
                   width: width,
                   year: year,
                   month: month,
@@ -79,27 +77,11 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                   totalDays: totalDays,
                   startDay: startDay,
                   selectedDate: selectedDate,
-                  events: controller.events,
+                  events: state.events,
                   onMoveMonth: _moveMonth,
-                  onSelectDate: (dateKey) =>
-                      setState(() => selectedDate = dateKey),
-                )
-              else
-                Expanded(
-                  child: EventsCalendarCard(
-                    width: width,
-                    year: year,
-                    month: month,
-                    monthNames: monthNames,
-                    totalDays: totalDays,
-                    startDay: startDay,
-                    selectedDate: selectedDate,
-                    events: controller.events,
-                    onMoveMonth: _moveMonth,
-                    onSelectDate: (dateKey) =>
-                        setState(() => selectedDate = dateKey),
-                  ),
+                  onSelectDate: (dateKey) => setState(() => selectedDate = dateKey),
                 ),
+              ),
               SizedBox(width: isStacked ? 0 : 32, height: isStacked ? 24 : 0),
               SizedBox(
                 width: isStacked ? double.infinity : 400,
@@ -110,10 +92,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                     children: [
                       Row(
                         children: [
-                          const Icon(
-                            Icons.calendar_month,
-                            color: Colors.pinkAccent,
-                          ),
+                          const Icon(Icons.calendar_month, color: Colors.pinkAccent),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -131,16 +110,10 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                             onTap: () async {
                               final result = await showDialog<UniversityEvent>(
                                 context: context,
-                                builder: (context) =>
-                                    AddEventDialog(selectedDate: selectedDate),
+                                builder: (context) => AddEventDialog(selectedDate: selectedDate),
                               );
                               if (result != null) {
-                                ref
-                                    .read(eventsControllerProvider)
-                                    .addEvent(
-                                      dateKey: selectedDate,
-                                      event: result,
-                                    );
+                                context.read<EventsCubit>().addEvent(dateKey: selectedDate, event: result);
                               }
                             },
                           ),
@@ -148,29 +121,13 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                       ),
                       const SizedBox(height: 24),
                       if (selectedEvents.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Text(
-                                  "NENHUM EVENTO PROGRAMADO PARA ESTE DIA.",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  "Aproveite para estudar no 11º andar! 📚",
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ],
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40),
+                            child: Text(
+                              "NENHUM EVENTO PROGRAMADO PARA ESTE DIA.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
                             ),
                           ),
                         )
@@ -185,23 +142,15 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 4,
-                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                     decoration: BoxDecoration(
                                       color: eventCategoryColor(event.category),
-                                      border: Border.all(
-                                        color: Colors.black,
-                                        width: 2,
-                                      ),
+                                      border: Border.all(color: Colors.black, width: 2),
                                     ),
                                     child: Text(
                                       event.category.toUpperCase(),
                                       style: TextStyle(
-                                        color: event.category == "Acadêmico"
-                                            ? Colors.black
-                                            : Colors.white,
+                                        color: event.category == "Acadêmico" ? Colors.black : Colors.white,
                                         fontWeight: FontWeight.w900,
                                         fontSize: 12,
                                       ),
@@ -219,36 +168,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                                   const SizedBox(height: 8),
                                   Text(
                                     event.description,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Container(
-                                    padding: const EdgeInsets.only(top: 12),
-                                    decoration: const BoxDecoration(
-                                      border: Border(
-                                        top: BorderSide(
-                                          color: Colors.black,
-                                          width: 2,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Wrap(
-                                      spacing: 16,
-                                      runSpacing: 8,
-                                      children: [
-                                        MetaText(
-                                          icon: Icons.location_on_outlined,
-                                          label: event.location,
-                                        ),
-                                        MetaText(
-                                          icon: Icons.schedule,
-                                          label: event.time,
-                                        ),
-                                      ],
-                                    ),
+                                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700),
                                   ),
                                 ],
                               ),

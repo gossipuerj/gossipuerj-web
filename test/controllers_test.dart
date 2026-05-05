@@ -1,110 +1,56 @@
-import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:flutter_test/flutter_test.dart";
 
-import "package:flutter_app/domain/models/university_event.dart";
-import "package:flutter_app/shared/providers/app_providers.dart";
+import "package:flutter_app/features/auth/presentation/session/session_cubit.dart";
+import "package:flutter_app/shared/state/mock_app_cubits.dart";
+
+import "support/fakes.dart";
 
 void main() {
-  group("sessionController", () {
-    test("login normalizes username and marks user as logged in", () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+  group("sessionCubit", () {
+    test("starts unauthenticated when there is no token", () async {
+      final tokenStore = InMemoryTokenStore();
+      final cubit = SessionCubit(FakeAuthRepository(), tokenStore);
 
-      final session = container.read(sessionControllerProvider);
-      final ok = await session.login(username: "@novo_user", password: "1234");
+      await cubit.start();
 
-      expect(ok, isTrue);
-      expect(session.isLoggedIn, isTrue);
-      expect(session.currentUser?.username, "novo_user");
-      expect(session.currentUser?.instagram, "novo_user");
+      expect(cubit.state.isAuthenticated, isFalse);
     });
   });
 
-  group("feedController", () {
+  group("feedCubit", () {
     test("post and comment use the current logged user", () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+      final authRepository = FakeAuthRepository();
+      final tokenStore = InMemoryTokenStore(initialToken: "abc");
+      final sessionCubit = SessionCubit(authRepository, tokenStore);
+      await sessionCubit.start();
+      final feedCubit = FeedCubit(sessionCubit);
 
-      await container
-          .read(sessionControllerProvider)
-          .login(username: "@aluna", password: "1234");
+      await feedCubit.postGossip(target: "@curso", content: "Novo post", category: "Fofoca");
 
-      final feed = container.read(feedControllerProvider);
-      await feed.postGossip(
-        target: "@curso",
-        content: "Novo post",
-        category: "Fofoca",
-      );
-
-      final created = feed.gossips.first;
-      expect(created.authorId, "user-123");
-      expect(created.content, "Novo post");
-
-      feed.addComment(created.id, "Comentário");
-      expect(feed.gossips.first.comments.last.authorId, "user-123");
+      final created = feedCubit.state.gossips.first;
+      expect(created.authorId, authRepository.user.id);
+      feedCubit.addComment(created.id, "Comentário");
+      expect(feedCubit.state.gossips.first.comments.last.authorId, authRepository.user.id);
     });
   });
 
-  group("profilesController", () {
-    test("updateProfile syncs gallery and session state", () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-
-      final session = container.read(sessionControllerProvider);
-      final profiles = container.read(profilesControllerProvider);
-      final updated = session.currentUser!.copyWith(bio: "Nova bio");
-
-      await profiles.updateProfile(updated);
-
-      expect(
-        container.read(sessionControllerProvider).currentUser?.bio,
-        "Nova bio",
-      );
-      expect(
-        container
-            .read(profilesControllerProvider)
-            .profiles
-            .firstWhere((item) => item.id == updated.id)
-            .bio,
-        "Nova bio",
-      );
-    });
-  });
-
-  group("messagesController", () {
+  group("messagesCubit", () {
     test("openOrCreateConversation and sendMessage update the thread", () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+      final cubit = MessagesCubit();
+      final conversation = cubit.openOrCreateConversation("teste_chat");
+      cubit.sendMessage(conversationId: conversation.id, text: "Oi");
 
-      final controller = container.read(messagesControllerProvider);
-      final conversation = controller.openOrCreateConversation("teste_chat");
-      controller.sendMessage(conversationId: conversation.id, text: "Oi");
-
-      expect(controller.chatHistory[conversation.id]?.last.text, "Oi");
-      expect(controller.conversations.first.id, conversation.id);
+      expect(cubit.state.chatHistory[conversation.id]?.last.text, "Oi");
+      expect(cubit.state.conversations.first.id, conversation.id);
     });
   });
 
-  group("eventsController", () {
+  group("eventsCubit", () {
     test("addEvent appends event to selected date", () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-
-      final controller = container.read(eventsControllerProvider);
-      final before = controller.events["2026-04-10"]!.length;
-      controller.addEvent(
-        dateKey: "2026-04-10",
-        event: const UniversityEvent(
-          id: "x",
-          title: "Novo",
-          category: "Social",
-          location: "Campus",
-          time: "20:00",
-          description: "Teste",
-        ),
-      );
-
-      expect(controller.events["2026-04-10"]!.length, before + 1);
+      final cubit = EventsCubit();
+      final before = cubit.state.events["2026-04-10"]!.length;
+      cubit.addEvent(dateKey: "2026-04-10", event: fakeEvent());
+      expect(cubit.state.events["2026-04-10"]!.length, before + 1);
     });
   });
 }

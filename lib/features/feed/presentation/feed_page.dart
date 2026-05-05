@@ -1,9 +1,9 @@
 import "package:flutter/material.dart";
-import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 
 import "../../../core/theme/app_breakpoints.dart";
 import "../../../shared/layout/page_container.dart";
-import "../../../shared/providers/app_providers.dart";
+import "../../../shared/state/mock_app_cubits.dart";
 import "../../../shared/widgets/art_pop_card.dart";
 import "../../../shared/widgets/gretchen_blob.dart";
 import "widgets/feed_composer.dart";
@@ -11,14 +11,14 @@ import "widgets/feed_filter_bar.dart";
 import "widgets/feed_hero.dart";
 import "widgets/gossip_card.dart";
 
-class FeedPage extends ConsumerStatefulWidget {
+class FeedPage extends StatefulWidget {
   const FeedPage({super.key});
 
   @override
-  ConsumerState<FeedPage> createState() => _FeedPageState();
+  State<FeedPage> createState() => _FeedPageState();
 }
 
-class _FeedPageState extends ConsumerState<FeedPage> {
+class _FeedPageState extends State<FeedPage> {
   final targetController = TextEditingController();
   final contentController = TextEditingController();
   String selectedCategory = "Todos";
@@ -33,13 +33,13 @@ class _FeedPageState extends ConsumerState<FeedPage> {
 
   @override
   Widget build(BuildContext context) {
-    final feedController = ref.watch(feedControllerProvider);
+    final feedState = context.watch<FeedCubit>().state;
     final width = MediaQuery.sizeOf(context).width;
     final isCompact = width < AppBreakpoints.tablet;
     final categories = const ["Todos", "Fofoca", "Desabafo", "Paquera"];
     final filtered = selectedCategory == "Todos"
-        ? feedController.gossips
-        : feedController.gossips
+        ? feedState.gossips
+        : feedState.gossips
               .where((item) => item.category == selectedCategory)
               .toList();
 

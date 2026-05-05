@@ -1,26 +1,27 @@
 import "package:flutter/material.dart";
-import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 import "package:intl/intl.dart";
 
 import "../../../../core/theme/glossip_colors.dart";
 import "../../../../domain/models/gossip_post.dart";
-import "../../../../shared/providers/app_providers.dart";
+import "../../../../features/auth/presentation/session/session_cubit.dart";
+import "../../../../shared/state/mock_app_cubits.dart";
 import "../../../../shared/widgets/art_pop_card.dart";
 import "../../../../shared/widgets/buttons.dart";
 import "../../../../shared/widgets/confirmation_dialog.dart";
 import "../../../../shared/widgets/form_fields.dart";
 import "../../../../shared/widgets/hashtag_text.dart";
 
-class GossipCard extends ConsumerStatefulWidget {
+class GossipCard extends StatefulWidget {
   const GossipCard({super.key, required this.post});
 
   final GossipPost post;
 
   @override
-  ConsumerState<GossipCard> createState() => _GossipCardState();
+  State<GossipCard> createState() => _GossipCardState();
 }
 
-class _GossipCardState extends ConsumerState<GossipCard> {
+class _GossipCardState extends State<GossipCard> {
   bool showComments = false;
   bool isEditing = false;
   late final TextEditingController editController = TextEditingController(
@@ -37,13 +38,13 @@ class _GossipCardState extends ConsumerState<GossipCard> {
 
   @override
   Widget build(BuildContext context) {
-    final feedController = ref.watch(feedControllerProvider);
-    final session = ref.watch(sessionControllerProvider);
-    final post = feedController.gossips.firstWhere(
+    final feedState = context.watch<FeedCubit>().state;
+    final sessionState = context.watch<SessionCubit>().state;
+    final post = feedState.gossips.firstWhere(
       (item) => item.id == widget.post.id,
       orElse: () => widget.post,
     );
-    final isAuthor = post.authorId == session.currentUser?.id;
+    final isAuthor = post.authorId == sessionState.user?.id;
     final timeLabel = DateFormat.Hm("pt_BR").format(post.timestamp);
 
     return HoverArtPopCard(
@@ -122,9 +123,7 @@ class _GossipCardState extends ConsumerState<GossipCard> {
                   if (isAuthor)
                     IconChipButton(
                       label: post.isFollowing ? "🔔" : "🔕",
-                      onTap: () => ref
-                          .read(feedControllerProvider)
-                          .toggleFollowGossip(post.id),
+                      onTap: () => context.read<FeedCubit>().toggleFollowGossip(post.id),
                     ),
                   if (isAuthor)
                     IconChipButton(
@@ -146,9 +145,7 @@ class _GossipCardState extends ConsumerState<GossipCard> {
                             ) ??
                             false;
                         if (confirmed) {
-                          ref
-                              .read(feedControllerProvider)
-                              .deleteGossip(post.id);
+                          context.read<FeedCubit>().deleteGossip(post.id);
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -189,9 +186,7 @@ class _GossipCardState extends ConsumerState<GossipCard> {
             GlossipButton(
               label: "Salvar",
               onPressed: () {
-                ref
-                    .read(feedControllerProvider)
-                    .updateGossip(post.id, editController.text.trim());
+                context.read<FeedCubit>().updateGossip(post.id, editController.text.trim());
                 setState(() => isEditing = false);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -290,7 +285,7 @@ class _GossipCardState extends ConsumerState<GossipCard> {
                             ),
                           ),
                           if (comment.authorId != null &&
-                              comment.authorId == session.currentUser?.id)
+                              comment.authorId == sessionState.user?.id)
                             IconButton(
                               onPressed: () async {
                                 final confirmed =
@@ -304,9 +299,7 @@ class _GossipCardState extends ConsumerState<GossipCard> {
                                     ) ??
                                     false;
                                 if (confirmed) {
-                                  ref
-                                      .read(feedControllerProvider)
-                                      .deleteComment(post.id, comment.id);
+                                  context.read<FeedCubit>().deleteComment(post.id, comment.id);
                                 }
                               },
                               icon: const Icon(Icons.delete_outline),
@@ -340,12 +333,10 @@ class _GossipCardState extends ConsumerState<GossipCard> {
                         onPressed: commentController.text.trim().isEmpty
                             ? null
                             : () {
-                                ref
-                                    .read(feedControllerProvider)
-                                    .addComment(
-                                      post.id,
-                                      commentController.text.trim(),
-                                    );
+                                context.read<FeedCubit>().addComment(
+                                  post.id,
+                                  commentController.text.trim(),
+                                );
                                 commentController.clear();
                                 setState(() {});
                               },

@@ -1,25 +1,26 @@
 import "package:flutter/material.dart";
-import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
 
 import "../../../core/theme/app_breakpoints.dart";
+import "../../../features/auth/presentation/session/session_cubit.dart";
 import "../../../shared/layout/page_container.dart";
-import "../../../shared/providers/app_providers.dart";
 import "../../../shared/seed/mock_seed_data.dart";
+import "../../../shared/state/mock_app_cubits.dart";
 import "../../../shared/widgets/art_pop_card.dart";
 import "../../../shared/widgets/buttons.dart";
 import "../../../shared/widgets/form_fields.dart";
 import "../../../shared/widgets/labels.dart";
 import "widgets/profile_grid_card.dart";
 
-class CrushesPage extends ConsumerStatefulWidget {
+class CrushesPage extends StatefulWidget {
   const CrushesPage({super.key});
 
   @override
-  ConsumerState<CrushesPage> createState() => _CrushesPageState();
+  State<CrushesPage> createState() => _CrushesPageState();
 }
 
-class _CrushesPageState extends ConsumerState<CrushesPage> {
+class _CrushesPageState extends State<CrushesPage> {
   final searchController = TextEditingController();
   String selectedCourse = "Todos";
   String selectedGender = "Todos";
@@ -33,12 +34,12 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final profilesController = ref.watch(profilesControllerProvider);
-    final session = ref.watch(sessionControllerProvider);
+    final profilesState = context.watch<ProfilesCubit>().state;
+    final profilesCubit = context.read<ProfilesCubit>();
+    final sessionState = context.watch<SessionCubit>().state;
     final search = searchController.text.toLowerCase();
-    final filtered = profilesController.profiles.where((profile) {
-      if (session.isLoggedIn &&
-          profile.username == session.currentUser?.username) {
+    final filtered = profilesState.profiles.where((profile) {
+      if (sessionState.isAuthenticated && profile.username == sessionState.user?.username) {
         return false;
       }
       if (!profile.showInGallery) {
@@ -49,24 +50,13 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
           (profile.firstName ?? "").toLowerCase().contains(search) ||
           (profile.lastName ?? "").toLowerCase().contains(search);
       final profileCourse = profile.course ?? "";
-      final profileGender = profilesController.normalizedGender(
-        profile.gender ?? "",
-      );
-      final profileOrientation = profilesController.normalizedOrientation(
-        profile.orientation ?? "",
-      );
-
-      final matchesCourse =
-          selectedCourse == "Todos" || profileCourse == selectedCourse;
-      final matchesGender =
-          selectedGender == "Todos" || profileGender == selectedGender;
+      final profileGender = profilesCubit.normalizedGender(profile.gender ?? "");
+      final profileOrientation = profilesCubit.normalizedOrientation(profile.orientation ?? "");
+      final matchesCourse = selectedCourse == "Todos" || profileCourse == selectedCourse;
+      final matchesGender = selectedGender == "Todos" || profileGender == selectedGender;
       final matchesOrientation =
-          selectedOrientation == "Todos" ||
-          profileOrientation == selectedOrientation;
-      return matchesSearch &&
-          matchesCourse &&
-          matchesGender &&
-          matchesOrientation;
+          selectedOrientation == "Todos" || profileOrientation == selectedOrientation;
+      return matchesSearch && matchesCourse && matchesGender && matchesOrientation;
     }).toList();
 
     final width = MediaQuery.sizeOf(context).width;
@@ -86,12 +76,11 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
           const HeroTitle(
             titleStart: "Galeria de ",
             titleHighlight: "Crushes",
-            subtitle:
-                "Encontre outros alunos da UERJ e demonstre seu interesse.",
+            subtitle: "Encontre outros alunos da UERJ e demonstre seu interesse.",
             gradient2: true,
           ),
           const SizedBox(height: 32),
-          if (!session.isLoggedIn)
+          if (!sessionState.isAuthenticated)
             Padding(
               padding: const EdgeInsets.only(bottom: 32),
               child: ArtPopCard(
@@ -101,7 +90,7 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
                   children: [
                     const Expanded(
                       child: Text(
-                        "Você precisa estar logado com seu @ do Instagram para dar like nos perfis.",
+                        "Você precisa estar logado para dar like nos perfis.",
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w900,
@@ -124,12 +113,7 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
             child: Column(
               children: [
                 GlossipInput(
-                  padding: const EdgeInsets.only(
-                    left: 14,
-                    right: 14,
-                    top: 10,
-                    bottom: 10,
-                  ),
+                  padding: const EdgeInsets.only(left: 14, right: 14, top: 10, bottom: 10),
                   child: Row(
                     children: [
                       const Icon(Icons.search, color: Colors.black),
@@ -159,70 +143,44 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
                       label: "Curso",
                       value: selectedCourse,
                       items: const ["Todos", ...uerjCourses],
-                      onChanged: (value) =>
-                          setState(() => selectedCourse = value),
+                      onChanged: (value) => setState(() => selectedCourse = value),
                     );
                     final genderDropdown = DropdownGroup(
                       label: "Gênero",
                       value: selectedGender,
                       items: genders,
-                      onChanged: (value) =>
-                          setState(() => selectedGender = value),
+                      onChanged: (value) => setState(() => selectedGender = value),
                     );
                     final orientationDropdown = DropdownGroup(
                       label: "Orientação",
                       value: selectedOrientation,
                       items: orientations,
-                      onChanged: (value) =>
-                          setState(() => selectedOrientation = value),
+                      onChanged: (value) => setState(() => selectedOrientation = value),
                     );
-                    return vertical
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              courseDropdown,
-                              const SizedBox(height: 16),
-                              genderDropdown,
-                              const SizedBox(height: 16),
-                              orientationDropdown,
-                            ],
-                          )
-                        : Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: courseDropdown),
-                              const SizedBox(width: 20),
-                              Expanded(child: genderDropdown),
-                              const SizedBox(width: 20),
-                              Expanded(child: orientationDropdown),
-                            ],
-                          );
+                    if (vertical) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          courseDropdown,
+                          const SizedBox(height: 16),
+                          genderDropdown,
+                          const SizedBox(height: 16),
+                          orientationDropdown,
+                        ],
+                      );
+                    }
+                    return Row(
+                      children: [
+                        Expanded(child: courseDropdown),
+                        const SizedBox(width: 20),
+                        Expanded(child: genderDropdown),
+                        const SizedBox(width: 20),
+                        Expanded(child: orientationDropdown),
+                      ],
+                    );
                   },
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.only(bottom: 12),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.black, width: 4)),
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.black, width: 3),
-              ),
-              child: Text(
-                "${filtered.length} ${filtered.length == 1 ? "PERFIL ENCONTRADO" : "PERFIS ENCONTRADOS"}",
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 20,
-                ),
-              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -230,11 +188,8 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
             const ArtPopCard(
               child: Center(
                 child: Text(
-                  "NENHUM PERFIL CORRESPONDE AOS SEUS FILTROS. TENTE OUTRA BUSCA!",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w900,
-                  ),
+                  "NENHUM PERFIL CORRESPONDE AOS SEUS FILTROS.",
+                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
                 ),
               ),
             )
@@ -249,8 +204,7 @@ class _CrushesPageState extends ConsumerState<CrushesPage> {
                 mainAxisSpacing: 20,
                 childAspectRatio: 0.72,
               ),
-              itemBuilder: (context, index) =>
-                  ProfileGridCard(profile: filtered[index]),
+              itemBuilder: (context, index) => ProfileGridCard(profile: filtered[index]),
             ),
         ],
       ),

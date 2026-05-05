@@ -1,546 +1,355 @@
-import "dart:typed_data";
-
 import "package:flutter/material.dart";
-import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
 
-import "../../../core/theme/glossip_colors.dart";
-import "../../../domain/models/user_profile.dart";
+import "../../../features/auth/presentation/session/session_cubit.dart";
+import "../../../features/auth/presentation/session/session_state.dart";
 import "../../../shared/layout/page_container.dart";
-import "../../../shared/providers/app_providers.dart";
-import "../../../shared/seed/mock_seed_data.dart";
-import "../../../shared/utils/avatar_picker.dart";
+import "../../../shared/state/mock_app_cubits.dart";
 import "../../../shared/widgets/art_pop_card.dart";
 import "../../../shared/widgets/avatar.dart";
 import "../../../shared/widgets/buttons.dart";
 import "../../../shared/widgets/form_fields.dart";
-import "../../../shared/widgets/labels.dart";
+import "profile_cubit.dart";
+import "profile_state.dart";
 import "../../feed/presentation/widgets/gossip_card.dart";
 
-class ProfilePage extends ConsumerStatefulWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  ConsumerState<ProfilePage> createState() => _ProfilePageState();
+  State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends ConsumerState<ProfilePage> {
-  final firstNameController = TextEditingController();
-  final lastNameController = TextEditingController();
+class _ProfilePageState extends State<ProfilePage> {
+  final usernameController = TextEditingController();
   final bioController = TextEditingController();
-  final instagramController = TextEditingController();
-  String course = mockUser.course ?? "Não informado";
-  String gender = mockUser.gender ?? "Não informado";
-  String orientation = mockUser.orientation ?? "Não informado";
-  bool showInGallery = mockUser.showInGallery;
-  Uint8List? avatarBytes;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final user = ref.read(sessionControllerProvider).currentUser;
-    if (user != null &&
-        firstNameController.text.isEmpty &&
-        lastNameController.text.isEmpty) {
-      _hydrateForm(user);
-    }
-  }
-
-  void _hydrateForm(UserProfile user) {
-    firstNameController.text = user.firstName ?? "";
-    lastNameController.text = user.lastName ?? "";
-    bioController.text = user.bio ?? "";
-    instagramController.text = user.instagram ?? "";
-    course = user.course ?? "Não informado";
-    gender = user.gender ?? "Não informado";
-    orientation = user.orientation ?? "Não informado";
-    showInGallery = user.showInGallery;
-    avatarBytes = user.avatarBytes;
-  }
+  final courseController = TextEditingController();
+  final avatarUrlController = TextEditingController();
+  String gender = "Prefiro não informar";
+  String orientation = "Outro";
+  bool showInGallery = true;
+  bool hydrated = false;
 
   @override
   void dispose() {
-    firstNameController.dispose();
-    lastNameController.dispose();
+    usernameController.dispose();
     bioController.dispose();
-    instagramController.dispose();
+    courseController.dispose();
+    avatarUrlController.dispose();
     super.dispose();
+  }
+
+  void _hydrate(ProfileState state) {
+    final user = state.user;
+    if (user == null || hydrated) {
+      return;
+    }
+    hydrated = true;
+    usernameController.text = user.username;
+    bioController.text = user.bio ?? "";
+    courseController.text = user.course ?? "";
+    avatarUrlController.text = user.avatarUrl ?? "";
+    gender = user.gender ?? "Prefiro não informar";
+    orientation = user.orientation ?? "Outro";
+    showInGallery = user.showInGallery;
   }
 
   @override
   Widget build(BuildContext context) {
-    final session = ref.watch(sessionControllerProvider);
-    final profiles = ref.watch(profilesControllerProvider);
-    final feed = ref.watch(feedControllerProvider);
-    final user = session.currentUser;
-    if (user == null) {
-      return PageContainer(
-        maxWidth: 800,
-        child: ArtPopCard(
-          child: Column(
-            children: [
-              const Text(
-                "VOCÊ PRECISA ESTAR LOGADO PARA ACESSAR O PERFIL.",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 20,
-                ),
-              ),
-              const SizedBox(height: 20),
-              GlossipButton(
-                label: "Ir para Login",
-                onPressed: () => context.go("/login"),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+    return BlocListener<SessionCubit, SessionState>(
+      listener: (context, sessionState) {
+        if (sessionState.user != null) {
+          context.read<ProfileCubit>().setUserFromSession();
+          hydrated = false;
+        }
+      },
+      child: BlocConsumer<ProfileCubit, ProfileState>(
+        listener: (context, state) {
+          if (state.message != null) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message!)));
+            context.read<ProfileCubit>().clearFeedback();
+          }
+        },
+        builder: (context, profileState) {
+          final sessionState = context.watch<SessionCubit>().state;
+          final feedCubit = context.watch<FeedCubit>();
+          if (profileState.user == null && sessionState.user != null) {
+            context.read<ProfileCubit>().setUserFromSession();
+          }
+          _hydrate(profileState.user == null ? ProfileState(user: sessionState.user) : profileState);
+          final user = profileState.user ?? sessionState.user;
 
-    final myPosts = feed.postsByUser(user.id);
-    final width = MediaQuery.sizeOf(context).width;
-    final compact = width < 600;
-
-    return PageContainer(
-      maxWidth: 800,
-      child: Column(
-        children: [
-          ArtPopCard(
-            padding: EdgeInsets.fromLTRB(
-              compact ? 20 : 40,
-              compact ? 60 : 40,
-              compact ? 20 : 40,
-              40,
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: GlossipButton(
-                    label: "Sair",
-                    background: Colors.white,
-                    onPressed: () async {
-                      await ref.read(sessionControllerProvider).logout();
-                      if (context.mounted) {
-                        context.go("/");
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Logout simulado (MOCK)"),
-                          ),
-                        );
-                      }
-                    },
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                  ),
-                ),
-                Column(
+          if (user == null) {
+            return PageContainer(
+              maxWidth: 800,
+              child: ArtPopCard(
+                child: Column(
                   children: [
-                    Flex(
-                      direction: compact ? Axis.vertical : Axis.horizontal,
-                      crossAxisAlignment: compact
-                          ? CrossAxisAlignment.center
-                          : CrossAxisAlignment.start,
-                      children: [
-                        UserAvatar(
-                          username: user.username,
-                          avatarUrl: user.avatarUrl,
-                          avatarBytes: avatarBytes ?? user.avatarBytes,
-                          size: 120,
-                          square: true,
-                        ),
-                        SizedBox(
-                          width: compact ? 0 : 32,
-                          height: compact ? 20 : 0,
-                        ),
-                        if (compact)
-                          _ProfileHeaderText(
+                    const Text(
+                      "VOCÊ PRECISA ESTAR LOGADO PARA ACESSAR O PERFIL.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    GlossipButton(
+                      label: "Ir para Login",
+                      onPressed: () => context.go("/login"),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final myPosts = feedCubit.postsByUser(user.id);
+
+          return PageContainer(
+            maxWidth: 900,
+            child: Column(
+              children: [
+                ArtPopCard(
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          UserAvatar(
                             username: user.username,
-                            compact: true,
-                          )
-                        else
+                            avatarUrl: avatarUrlController.text.isEmpty
+                                ? user.avatarUrl
+                                : avatarUrlController.text,
+                            size: 96,
+                            square: true,
+                          ),
+                          const SizedBox(width: 20),
                           Expanded(
-                            child: _ProfileHeaderText(
-                              username: user.username,
-                              compact: false,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "@${user.username}".toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 32,
+                                  ),
+                                ),
+                                Text(
+                                  user.displayName,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                Text(
+                                  user.email ?? "",
+                                  style: TextStyle(
+                                    color: Colors.black.withValues(alpha: 0.7),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                if (user.personalEmail != null)
+                                  Text(
+                                    user.personalEmail!,
+                                    style: TextStyle(
+                                      color: Colors.black.withValues(alpha: 0.7),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                      ],
-                    ),
-                  ],
+                          GlossipButton(
+                            label: "Sair",
+                            background: Colors.white,
+                            onPressed: () async {
+                              await context.read<SessionCubit>().logout();
+                              if (context.mounted) {
+                                context.go("/");
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(child: _StatCard(label: "Fofoquinhas", value: "${myPosts.length}")),
+                          const SizedBox(width: 16),
+                          Expanded(child: _StatCard(label: "Galeria", value: showInGallery ? "Visível" : "Oculto")),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final vertical = constraints.maxWidth < 600;
-              final postsCard = ArtPopCard(
-                shadowOffset: const Offset(8, 8),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "${myPosts.length}",
-                      style: const TextStyle(
-                        color: GlossipColors.primary,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 48,
-                      ),
-                    ),
-                    const Text(
-                      "FOFOCAS POSTADAS",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-              final statusCard = ArtPopCard(
-                shadowOffset: const Offset(8, 8),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      myPosts.isEmpty ? "Novo" : "Ativo",
-                      style: const TextStyle(
-                        color: GlossipColors.primary,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 40,
-                      ),
-                    ),
-                    const Text(
-                      "STATUS",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-              return vertical
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        postsCard,
-                        const SizedBox(height: 20),
-                        statusCard,
-                      ],
-                    )
-                  : Row(
-                      children: [
-                        Expanded(child: postsCard),
-                        const SizedBox(width: 20),
-                        Expanded(child: statusCard),
-                      ],
-                    );
-            },
-          ),
-          const SizedBox(height: 40),
-          ArtPopCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.shield_outlined, color: Colors.black),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        "PRIVACIDADE DA GALERIA",
+                const SizedBox(height: 32),
+                ArtPopCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "PERFIL",
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w900,
                           fontSize: 24,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "Escolha se deseja que seu perfil seja listado na página de Crushes para outros alunos.",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                GlossipButton(
-                  label: showInGallery
-                      ? "Perfil Visível na Galeria"
-                      : "Perfil Oculto na Galeria",
-                  background: showInGallery
-                      ? Colors.cyanAccent
-                      : const Color(0xFFF0F0F0),
-                  onPressed: () =>
-                      setState(() => showInGallery = !showInGallery),
-                  expanded: true,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: SectionLabel("⚙️ Configurações de Identidade"),
-          ),
-          const SizedBox(height: 20),
-          ArtPopCard(
-            child: Column(
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final vertical = constraints.maxWidth < 600;
-                    final first = LabeledTextField(
-                      label: "Nome",
-                      controller: firstNameController,
-                    );
-                    final second = LabeledTextField(
-                      label: "Sobrenome",
-                      controller: lastNameController,
-                    );
-                    return vertical
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              first,
-                              const SizedBox(height: 20),
-                              second,
-                            ],
-                          )
-                        : Row(
-                            children: [
-                              Expanded(child: first),
-                              const SizedBox(width: 20),
-                              Expanded(child: second),
-                            ],
-                          );
-                  },
-                ),
-                const SizedBox(height: 20),
-                LabeledTextField(
-                  label: "Bio / Descrição",
-                  controller: bioController,
-                  maxLines: 4,
-                ),
-                const SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: const FieldLabel("Foto de Perfil"),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F0F0),
-                    border: Border.all(color: Colors.black, width: 3),
-                  ),
-                  child: Wrap(
-                    spacing: 20,
-                    runSpacing: 20,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      if (avatarBytes != null || user.avatarUrl != null)
-                        UserAvatar(
-                          username: user.username,
-                          avatarUrl: user.avatarUrl,
-                          avatarBytes: avatarBytes,
-                          size: 80,
-                          square: true,
-                        ),
+                      const SizedBox(height: 20),
+                      _ReadOnlyField(label: "Nome", value: user.firstName ?? "Não informado"),
+                      const SizedBox(height: 16),
+                      _ReadOnlyField(label: "Sobrenome", value: user.lastName ?? "Não informado"),
+                      const SizedBox(height: 16),
+                      _ReadOnlyField(label: "Email institucional", value: user.email ?? "Não informado"),
+                      const SizedBox(height: 24),
+                      LabeledTextField(label: "Username", controller: usernameController),
+                      const SizedBox(height: 16),
+                      LabeledTextField(label: "Curso", controller: courseController),
+                      const SizedBox(height: 16),
+                      LabeledTextField(label: "Bio", controller: bioController, maxLines: 4),
+                      const SizedBox(height: 16),
+                      LabeledTextField(label: "Avatar URL", controller: avatarUrlController),
+                      const SizedBox(height: 16),
+                      DropdownGroup(
+                        label: "Gênero",
+                        value: gender,
+                        items: const [
+                          "Masculino",
+                          "Feminino",
+                          "Não-binário",
+                          "Outro",
+                          "Prefiro não informar",
+                        ],
+                        onChanged: (value) => setState(() => gender = value),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownGroup(
+                        label: "Orientação",
+                        value: orientation,
+                        items: const [
+                          "Heterossexual",
+                          "Homossexual",
+                          "Lésbica",
+                          "Bissexual",
+                          "Pansexual",
+                          "Outro",
+                        ],
+                        onChanged: (value) => setState(() => orientation = value),
+                      ),
+                      const SizedBox(height: 16),
                       GlossipButton(
-                        label: "Selecionar imagem",
-                        onPressed: () async {
-                          try {
-                            final selected = await pickCompressedAvatar();
-                            if (selected != null) {
-                              setState(
-                                () => avatarBytes = profiles.buildAvatarBytes(
-                                  selected,
-                                ),
-                              );
-                            }
-                          } on AvatarTooLargeException {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    "A imagem é muito grande! Por favor, escolha uma imagem menor que 2MB.",
-                                  ),
-                                ),
-                              );
-                            }
-                          }
-                        },
+                        label: showInGallery ? "Perfil visível na galeria" : "Perfil oculto na galeria",
+                        background: showInGallery ? Colors.cyanAccent : const Color(0xFFF0F0F0),
+                        onPressed: () => setState(() => showInGallery = !showInGallery),
+                        expanded: true,
+                      ),
+                      const SizedBox(height: 20),
+                      GlossipButton(
+                        label: profileState.isSaving ? "Salvando..." : "Salvar alterações",
+                        onPressed: profileState.isSaving
+                            ? null
+                            : () {
+                                context.read<ProfileCubit>().updateProfile(
+                                  username: usernameController.text.trim(),
+                                  course: courseController.text.trim(),
+                                  bio: bioController.text.trim(),
+                                  avatarUrl: avatarUrlController.text.trim(),
+                                  gender: gender,
+                                  orientation: orientation,
+                                  showInGallery: showInGallery,
+                                );
+                              },
+                        expanded: true,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-                DropdownGroup(
-                  label: "Seu Curso",
-                  value: course,
-                  items: const ["Não informado", ...uerjCourses],
-                  onChanged: (value) => setState(() => course = value),
-                ),
-                const SizedBox(height: 20),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final vertical = constraints.maxWidth < 600;
-                    final one = DropdownGroup(
-                      label: "Gênero",
-                      value: gender,
-                      items: const [
-                        "Não informado",
-                        "Masculino",
-                        "Feminino",
-                        "Não-binário",
-                        "Outro",
-                      ],
-                      onChanged: (value) => setState(() => gender = value),
-                    );
-                    final two = DropdownGroup(
-                      label: "Orientação Sexual",
-                      value: orientation,
-                      items: const [
-                        "Não informado",
-                        "Heterossexual",
-                        "Homossexual",
-                        "Bissexual",
-                        "Pansexual",
-                        "Asexual",
-                        "Outra",
-                      ],
-                      onChanged: (value) => setState(() => orientation = value),
-                    );
-                    return vertical
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [one, const SizedBox(height: 20), two],
-                          )
-                        : Row(
-                            children: [
-                              Expanded(child: one),
-                              const SizedBox(width: 20),
-                              Expanded(child: two),
-                            ],
-                          );
-                  },
-                ),
-                const SizedBox(height: 20),
-                LabeledTextField(
-                  label: "Instagram (@)",
-                  controller: instagramController,
-                ),
-                const SizedBox(height: 20),
-                GlossipButton(
-                  label: profiles.isSavingProfile
-                      ? "Salvando..."
-                      : "Salvar Alterações",
-                  onPressed: profiles.isSavingProfile
-                      ? null
-                      : () async {
-                          final updatedUser = user.copyWith(
-                            firstName: firstNameController.text.trim(),
-                            lastName: lastNameController.text.trim(),
-                            bio: bioController.text.trim(),
-                            instagram: instagramController.text.trim(),
-                            course: course,
-                            gender: gender,
-                            orientation: orientation,
-                            showInGallery: showInGallery,
-                            avatarBytes: avatarBytes,
-                          );
-                          await ref
-                              .read(profilesControllerProvider)
-                              .updateProfile(updatedUser);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  "Perfil atualizado!\nBio: ${bioController.text.trim()}\nGaleria: ${showInGallery ? "Visível" : "Oculto"}",
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                  expanded: true,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: SectionLabel("Suas Publicações"),
-          ),
-          const SizedBox(height: 20),
-          if (myPosts.isEmpty)
-            const ArtPopCard(
-              child: Center(
-                child: Text(
-                  "VOCÊ AINDA NÃO POSTOU NENHUMA FOFOCA. O QUE ESTÁ ESPERANDO?",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            )
-          else
-            Column(
-              children: [
-                for (final gossip in myPosts)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    child: GossipCard(post: gossip),
+                const SizedBox(height: 32),
+                if (myPosts.isNotEmpty)
+                  Column(
+                    children: [
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "SUAS PUBLICAÇÕES",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 22,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      for (final gossip in myPosts)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          child: GossipCard(post: gossip),
+                        ),
+                    ],
                   ),
               ],
             ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return ArtPopCard(
+      shadowOffset: const Offset(8, 8),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w900,
+              fontSize: 28,
+            ),
+          ),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
+          ),
         ],
       ),
     );
   }
 }
 
-class _ProfileHeaderText extends StatelessWidget {
-  const _ProfileHeaderText({required this.username, required this.compact});
+class _ReadOnlyField extends StatelessWidget {
+  const _ReadOnlyField({required this.label, required this.value});
 
-  final String username;
-  final bool compact;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: compact
-          ? CrossAxisAlignment.center
-          : CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "@$username".toUpperCase(),
-          style: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.w900,
-            fontSize: 40,
-          ),
-        ),
-        Container(
-          color: Colors.yellow,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          child: const Text(
-            "Membro da comunidade GlossipUerj",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
+        FieldLabel(label),
+        const SizedBox(height: 8),
+        GlossipInput(
+          background: const Color(0xFFF5F5F5),
+          child: Text(
+            value,
+            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
           ),
         ),
       ],

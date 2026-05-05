@@ -1,27 +1,28 @@
 import "package:flutter/material.dart";
-import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
 
 import "../../../../core/theme/glossip_colors.dart";
 import "../../../../domain/models/user_profile.dart";
-import "../../../../shared/providers/app_providers.dart";
+import "../../../../features/auth/presentation/session/session_cubit.dart";
+import "../../../../shared/state/mock_app_cubits.dart";
 import "../../../../shared/utils/external_launchers.dart";
 import "../../../../shared/widgets/art_pop_card.dart";
 import "../../../../shared/widgets/avatar.dart";
 import "../../../../shared/widgets/buttons.dart";
 import "../../../../shared/widgets/labels.dart";
 
-class ProfileGridCard extends ConsumerWidget {
+class ProfileGridCard extends StatelessWidget {
   const ProfileGridCard({super.key, required this.profile});
 
   final UserProfile profile;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final profilesController = ref.watch(profilesControllerProvider);
-    final session = ref.watch(sessionControllerProvider);
-    final isOwnProfile = profile.username == session.currentUser?.username;
-    final liked = profilesController.likedProfiles.contains(profile.username);
+  Widget build(BuildContext context) {
+    final profilesState = context.watch<ProfilesCubit>().state;
+    final sessionState = context.watch<SessionCubit>().state;
+    final isOwnProfile = profile.username == sessionState.user?.username;
+    final liked = profilesState.likedProfiles.contains(profile.username);
 
     return ArtPopCard(
       padding: const EdgeInsets.all(16),
@@ -48,14 +49,10 @@ class ProfileGridCard extends ConsumerWidget {
               fontSize: 20,
             ),
           ),
-          if (profile.firstName != null || profile.lastName != null)
-            Text(
-              "@${profile.username}",
-              style: const TextStyle(
-                color: GlossipColors.primary,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
+          Text(
+            "@${profile.username}",
+            style: const TextStyle(color: GlossipColors.primary, fontWeight: FontWeight.w900),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
@@ -81,8 +78,7 @@ class ProfileGridCard extends ConsumerWidget {
                 Expanded(
                   child: SquareActionButton(
                     icon: Icons.chat_bubble_outline,
-                    onTap: () =>
-                        context.go("/messages?user=${profile.username}"),
+                    onTap: () => context.go("/messages?user=${profile.username}"),
                   ),
                 ),
             ],
@@ -99,10 +95,7 @@ class ProfileGridCard extends ConsumerWidget {
               child: const Text(
                 "VOCÊ",
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
               ),
             )
           else
@@ -110,7 +103,7 @@ class ProfileGridCard extends ConsumerWidget {
               label: liked ? "❤️ Interessado" : "🤍 Dar Like",
               background: liked ? GlossipColors.primary : Colors.white,
               foreground: liked ? Colors.white : Colors.black,
-              onPressed: !session.isLoggedIn
+              onPressed: !sessionState.isAuthenticated
                   ? () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -120,9 +113,7 @@ class ProfileGridCard extends ConsumerWidget {
                         ),
                       );
                     }
-                  : () => ref
-                        .read(profilesControllerProvider)
-                        .toggleLikedProfile(profile.username),
+                  : () => context.read<ProfilesCubit>().toggleLikedProfile(profile.username),
               expanded: true,
             ),
         ],
