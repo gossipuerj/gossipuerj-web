@@ -1,4 +1,5 @@
 import "package:dio/dio.dart";
+import "package:flutter/foundation.dart";
 import "package:get_it/get_it.dart";
 import "package:shared_preferences/shared_preferences.dart";
 
@@ -18,7 +19,13 @@ import "../config/app_config.dart";
 final getIt = GetIt.instance;
 
 Future<void> setupDependencies() async {
-  getIt.registerSingleton<AppConfig>(AppConfig.fromEnvironment());
+  final config = AppConfig.fromEnvironment();
+  getIt.registerSingleton<AppConfig>(config);
+
+  if (config.flavor == RuntimeFlavor.local ||
+      config.flavor == RuntimeFlavor.staging) {
+    debugPrint("[GlossipUerj] API_BASE_URL=${config.apiBaseUrl}");
+  }
 
   final preferences = await SharedPreferences.getInstance();
   getIt.registerSingleton<SharedPreferences>(preferences);
