@@ -65,17 +65,19 @@ class GlossipButton extends StatelessWidget {
   }
 }
 
-class SquareIconButton extends StatelessWidget {
-  const SquareIconButton({
+class GlossipIconButton extends StatelessWidget {
+  const GlossipIconButton({
     super.key,
     required this.icon,
     this.onTap,
     this.background = Colors.white,
+    this.foreground = Colors.black,
   });
 
   final IconData icon;
   final VoidCallback? onTap;
   final Color background;
+  final Color foreground;
 
   @override
   Widget build(BuildContext context) {
@@ -91,21 +93,35 @@ class SquareIconButton extends StatelessWidget {
               ? null
               : const [BoxShadow(color: Colors.black, offset: Offset(4, 4))],
         ),
-        child: Icon(icon, color: Colors.black),
+        child: Icon(icon, color: foreground),
       ),
     );
   }
 }
 
-class SquareActionButton extends StatelessWidget {
-  const SquareActionButton({
+class SquareIconButton extends GlossipIconButton {
+  const SquareIconButton({
+    super.key,
+    required super.icon,
+    super.onTap,
+    super.background = Colors.white,
+    super.foreground = Colors.black,
+  });
+}
+
+class GlossipIconTileButton extends StatelessWidget {
+  const GlossipIconTileButton({
     super.key,
     required this.icon,
     required this.onTap,
+    this.background = Colors.white,
+    this.foreground = Colors.black,
   });
 
   final IconData icon;
   final VoidCallback onTap;
+  final Color background;
+  final Color foreground;
 
   @override
   Widget build(BuildContext context) {
@@ -113,19 +129,29 @@ class SquareActionButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: 40,
-        decoration: borderedBoxDecoration(
-          color: Colors.white,
+        decoration: glossipBoxDecoration(
+          color: background,
           shadowOffset: const Offset(3, 3),
           borderWidth: 3,
         ),
-        child: Icon(icon, color: Colors.black),
+        child: Icon(icon, color: foreground),
       ),
     );
   }
 }
 
-class ActionChipButton extends StatefulWidget {
-  const ActionChipButton({
+class SquareActionButton extends GlossipIconTileButton {
+  const SquareActionButton({
+    super.key,
+    required super.icon,
+    required super.onTap,
+    super.background = Colors.white,
+    super.foreground = Colors.black,
+  });
+}
+
+class GlossipChipButton extends StatefulWidget {
+  const GlossipChipButton({
     super.key,
     required this.label,
     this.active = false,
@@ -137,10 +163,19 @@ class ActionChipButton extends StatefulWidget {
   final VoidCallback? onTap;
 
   @override
-  State<ActionChipButton> createState() => _ActionChipButtonState();
+  State<GlossipChipButton> createState() => _GlossipChipButtonState();
 }
 
-class _ActionChipButtonState extends State<ActionChipButton> {
+class ActionChipButton extends GlossipChipButton {
+  const ActionChipButton({
+    super.key,
+    required super.label,
+    super.active = false,
+    super.onTap,
+  });
+}
+
+class _GlossipChipButtonState extends State<GlossipChipButton> {
   bool hovered = false;
 
   @override
@@ -207,8 +242,8 @@ class _ActionChipButtonState extends State<ActionChipButton> {
   }
 }
 
-class IconChipButton extends StatelessWidget {
-  const IconChipButton({super.key, required this.label, this.onTap});
+class GlossipMiniChipButton extends StatelessWidget {
+  const GlossipMiniChipButton({super.key, required this.label, this.onTap});
 
   final String label;
   final VoidCallback? onTap;
@@ -227,4 +262,8 @@ class IconChipButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class IconChipButton extends GlossipMiniChipButton {
+  const IconChipButton({super.key, required super.label, super.onTap});
 }

@@ -2,8 +2,8 @@ import "package:flutter/material.dart";
 
 import "../../core/theme/glossip_colors.dart";
 
-class SectionLabel extends StatelessWidget {
-  const SectionLabel(this.text, {super.key, this.rotation = -0.02});
+class GlossipSectionLabel extends StatelessWidget {
+  const GlossipSectionLabel(this.text, {super.key, this.rotation = -0.02});
 
   final String text;
   final double rotation;
@@ -34,8 +34,12 @@ class SectionLabel extends StatelessWidget {
   }
 }
 
-class HeroTitle extends StatelessWidget {
-  const HeroTitle({
+class SectionLabel extends GlossipSectionLabel {
+  const SectionLabel(super.text, {super.key, super.rotation = -0.02});
+}
+
+class GlossipHeroTitle extends StatelessWidget {
+  const GlossipHeroTitle({
     super.key,
     required this.titleStart,
     required this.titleHighlight,
@@ -114,8 +118,22 @@ class HeroTitle extends StatelessWidget {
   }
 }
 
-class PageHeader extends StatelessWidget {
-  const PageHeader({super.key, required this.title, required this.subtitle});
+class HeroTitle extends GlossipHeroTitle {
+  const HeroTitle({
+    super.key,
+    required super.titleStart,
+    required super.titleHighlight,
+    required super.subtitle,
+    super.gradient2 = false,
+  });
+}
+
+class GlossipPageHeader extends StatelessWidget {
+  const GlossipPageHeader({
+    super.key,
+    required this.title,
+    required this.subtitle,
+  });
 
   final String title;
   final String subtitle;
@@ -161,8 +179,12 @@ class PageHeader extends StatelessWidget {
   }
 }
 
-class TagLabel extends StatelessWidget {
-  const TagLabel({super.key, required this.text});
+class PageHeader extends GlossipPageHeader {
+  const PageHeader({super.key, required super.title, required super.subtitle});
+}
+
+class GlossipTag extends StatelessWidget {
+  const GlossipTag({super.key, required this.text});
 
   final String text;
 
@@ -184,6 +206,10 @@ class TagLabel extends StatelessWidget {
       ),
     );
   }
+}
+
+class TagLabel extends GlossipTag {
+  const TagLabel({super.key, required super.text});
 }
 
 class MetaText extends StatelessWidget {

@@ -1,5 +1,7 @@
 import "package:flutter/material.dart";
 
+import "dialogs.dart";
+
 class ConfirmationDialog extends StatelessWidget {
   const ConfirmationDialog({
     super.key,
@@ -12,18 +14,6 @@ class ConfirmationDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      content: Text(title),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text("Cancelar"),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text(confirmLabel),
-        ),
-      ],
-    );
+    return GlossipConfirmationDialog(title: title, confirmLabel: confirmLabel);
   }
 }

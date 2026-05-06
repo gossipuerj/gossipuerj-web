@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 
-class FieldLabel extends StatelessWidget {
-  const FieldLabel(this.text, {super.key});
+class GlossipFieldLabel extends StatelessWidget {
+  const GlossipFieldLabel(this.text, {super.key});
 
   final String text;
 
@@ -16,6 +16,10 @@ class FieldLabel extends StatelessWidget {
       ),
     );
   }
+}
+
+class FieldLabel extends GlossipFieldLabel {
+  const FieldLabel(super.text, {super.key});
 }
 
 class GlossipInput extends StatelessWidget {
@@ -43,8 +47,8 @@ class GlossipInput extends StatelessWidget {
   }
 }
 
-class DropdownField extends StatelessWidget {
-  const DropdownField({
+class GlossipSelectField extends StatelessWidget {
+  const GlossipSelectField({
     super.key,
     required this.value,
     required this.items,
@@ -93,8 +97,17 @@ class DropdownField extends StatelessWidget {
   }
 }
 
-class DropdownGroup extends StatelessWidget {
-  const DropdownGroup({
+class DropdownField extends GlossipSelectField {
+  const DropdownField({
+    super.key,
+    required super.value,
+    required super.items,
+    required super.onChanged,
+  });
+}
+
+class GlossipLabeledSelectField extends StatelessWidget {
+  const GlossipLabeledSelectField({
     super.key,
     required this.label,
     required this.value,
@@ -113,16 +126,26 @@ class DropdownGroup extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        FieldLabel(label),
+        GlossipFieldLabel(label),
         const SizedBox(height: 8),
-        DropdownField(value: value, items: items, onChanged: onChanged),
+        GlossipSelectField(value: value, items: items, onChanged: onChanged),
       ],
     );
   }
 }
 
-class LabeledTextField extends StatelessWidget {
-  const LabeledTextField({
+class DropdownGroup extends GlossipLabeledSelectField {
+  const DropdownGroup({
+    super.key,
+    required super.label,
+    required super.value,
+    required super.items,
+    required super.onChanged,
+  });
+}
+
+class GlossipLabeledTextField extends StatelessWidget {
+  const GlossipLabeledTextField({
     super.key,
     required this.label,
     required this.controller,
@@ -138,7 +161,7 @@ class LabeledTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FieldLabel(label),
+        GlossipFieldLabel(label),
         const SizedBox(height: 8),
         GlossipInput(
           child: TextField(
@@ -156,8 +179,17 @@ class LabeledTextField extends StatelessWidget {
   }
 }
 
-class GlassField extends StatelessWidget {
-  const GlassField({
+class LabeledTextField extends GlossipLabeledTextField {
+  const LabeledTextField({
+    super.key,
+    required super.label,
+    required super.controller,
+    super.maxLines = 1,
+  });
+}
+
+class GlossipGlassField extends StatelessWidget {
+  const GlossipGlassField({
     super.key,
     required this.controller,
     required this.hint,
@@ -175,16 +207,16 @@ class GlassField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: darkText ? Colors.white : Colors.white.withValues(alpha: 0.05),
-          border: Border.all(
-            color: darkText
-                ? Colors.black.withValues(alpha: 0.18)
-                : Colors.white.withValues(alpha: 0.15),
-          ),
-          borderRadius: BorderRadius.circular(12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: darkText ? Colors.white : Colors.white.withValues(alpha: 0.05),
+        border: Border.all(
+          color: darkText
+              ? Colors.black.withValues(alpha: 0.18)
+              : Colors.white.withValues(alpha: 0.15),
         ),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: TextField(
         controller: controller,
         obscureText: obscureText,
@@ -201,4 +233,15 @@ class GlassField extends StatelessWidget {
       ),
     );
   }
+}
+
+class GlassField extends GlossipGlassField {
+  const GlassField({
+    super.key,
+    required super.controller,
+    required super.hint,
+    super.obscureText = false,
+    super.darkText = false,
+    super.onChanged,
+  });
 }

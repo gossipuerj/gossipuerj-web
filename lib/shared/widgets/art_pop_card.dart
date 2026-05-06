@@ -4,7 +4,7 @@ import "package:flutter/material.dart";
 
 import "../../core/theme/glossip_colors.dart";
 
-BoxDecoration borderedBoxDecoration({
+BoxDecoration glossipBoxDecoration({
   Color color = Colors.white,
   Color shadowColor = Colors.black,
   double borderWidth = 4,
@@ -17,8 +17,22 @@ BoxDecoration borderedBoxDecoration({
   );
 }
 
-class ArtPopCard extends StatelessWidget {
-  const ArtPopCard({
+BoxDecoration borderedBoxDecoration({
+  Color color = Colors.white,
+  Color shadowColor = Colors.black,
+  double borderWidth = 4,
+  Offset shadowOffset = const Offset(8, 8),
+}) {
+  return glossipBoxDecoration(
+    color: color,
+    shadowColor: shadowColor,
+    borderWidth: borderWidth,
+    shadowOffset: shadowOffset,
+  );
+}
+
+class GlossipCard extends StatelessWidget {
+  const GlossipCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(24),
@@ -40,7 +54,7 @@ class ArtPopCard extends StatelessWidget {
     return Container(
       margin: margin,
       padding: padding,
-      decoration: borderedBoxDecoration(
+      decoration: glossipBoxDecoration(
         color: color,
         shadowColor: shadowColor,
         shadowOffset: shadowOffset,
@@ -50,8 +64,20 @@ class ArtPopCard extends StatelessWidget {
   }
 }
 
-class HoverArtPopCard extends StatefulWidget {
-  const HoverArtPopCard({
+class ArtPopCard extends GlossipCard {
+  const ArtPopCard({
+    super.key,
+    required super.child,
+    super.padding = const EdgeInsets.all(24),
+    super.color = Colors.white,
+    super.shadowColor = Colors.black,
+    super.shadowOffset = const Offset(12, 12),
+    super.margin,
+  });
+}
+
+class GlossipHoverCard extends StatefulWidget {
+  const GlossipHoverCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(24),
@@ -75,10 +101,25 @@ class HoverArtPopCard extends StatefulWidget {
   final Duration duration;
 
   @override
-  State<HoverArtPopCard> createState() => _HoverArtPopCardState();
+  State<GlossipHoverCard> createState() => _GlossipHoverCardState();
 }
 
-class _HoverArtPopCardState extends State<HoverArtPopCard> {
+class HoverArtPopCard extends GlossipHoverCard {
+  const HoverArtPopCard({
+    super.key,
+    required super.child,
+    super.padding = const EdgeInsets.all(24),
+    super.color = Colors.white,
+    super.shadowColor = Colors.black,
+    super.hoverShadowColor = GlossipColors.secondary,
+    super.shadowOffset = const Offset(12, 12),
+    super.hoverForegroundOffset = const Offset(-4, -4),
+    super.margin,
+    super.duration = const Duration(milliseconds: 160),
+  });
+}
+
+class _GlossipHoverCardState extends State<GlossipHoverCard> {
   bool hovered = false;
 
   @override
