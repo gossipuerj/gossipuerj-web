@@ -1,10 +1,13 @@
 import "package:flutter/material.dart";
+import "package:flutter_bloc/flutter_bloc.dart";
 
 import "../../core/theme/app_breakpoints.dart";
 import "../../core/theme/glossip_colors.dart";
+import "../state/mock_app_cubits.dart";
+import "../widgets/glossip_components.dart";
 import "app_background.dart";
 
-class ShellFrame extends StatelessWidget {
+class ShellFrame extends StatefulWidget {
   const ShellFrame({
     super.key,
     required this.child,
@@ -19,6 +22,46 @@ class ShellFrame extends StatelessWidget {
   final ValueChanged<String> onNavigate;
 
   @override
+  State<ShellFrame> createState() => _ShellFrameState();
+}
+
+class _ShellFrameState extends State<ShellFrame> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void didUpdateWidget(covariant ShellFrame oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentPath != widget.currentPath) {
+      _scrollController.jumpTo(0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (widget.currentPath != "/" || !_scrollController.hasClients) {
+      return;
+    }
+
+    final threshold = _scrollController.position.maxScrollExtent * 0.85;
+    if (_scrollController.position.pixels >= threshold) {
+      context.read<FeedCubit>().loadMorePosts();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final showMobileNav = width < AppBreakpoints.tablet;
@@ -28,11 +71,30 @@ class ShellFrame extends StatelessWidget {
       _NavItem("Eventos", "/eventos", Icons.calendar_month_outlined),
       _NavItem("Mensagens", "/messages", Icons.chat_bubble_outline),
       _NavItem(
-        isLoggedIn ? "Perfil" : "Login",
-        isLoggedIn ? "/profile" : "/login",
+        widget.isLoggedIn ? "Perfil" : "Login",
+        widget.isLoggedIn ? "/profile" : "/login",
         Icons.person_outline,
       ),
     ];
+    final topNavItems = navItems.where((item) => item.path != "/messages").toList();
+
+    final bodyScrollView = SingleChildScrollView(
+      controller: _scrollController,
+      physics: widget.currentPath == "/"
+          ? const AlwaysScrollableScrollPhysics()
+          : null,
+      child: Column(children: [widget.child, const Footer()]),
+    );
+
+    final body = widget.currentPath == "/"
+        ? GlossipPullToRefresh(
+            isRefreshing: context.watch<FeedCubit>().state.isLoading,
+            onRefresh: () => context.read<FeedCubit>().loadPosts(
+              category: context.read<FeedCubit>().state.selectedCategory,
+            ),
+            child: bodyScrollView,
+          )
+        : bodyScrollView;
 
     return AppBackground(
       child: Scaffold(
@@ -43,24 +105,20 @@ class ShellFrame extends StatelessWidget {
           child: Column(
             children: [
               _TopNav(
-                items: navItems,
-                currentPath: currentPath,
-                onNavigate: onNavigate,
+                items: topNavItems,
+                currentPath: widget.currentPath,
+                onNavigate: widget.onNavigate,
                 visible: !showMobileNav,
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(children: [child, const Footer()]),
-                ),
-              ),
+              Expanded(child: body),
             ],
           ),
         ),
         bottomNavigationBar: showMobileNav
             ? _BottomNav(
                 items: navItems,
-                currentPath: currentPath,
-                onNavigate: onNavigate,
+                currentPath: widget.currentPath,
+                onNavigate: widget.onNavigate,
               )
             : null,
       ),
