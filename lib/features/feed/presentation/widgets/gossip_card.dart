@@ -6,10 +6,7 @@ import "../../../../core/theme/glossip_colors.dart";
 import "../../../../domain/models/gossip_post.dart";
 import "../../../../features/auth/presentation/session/session_cubit.dart";
 import "../../../../shared/state/mock_app_cubits.dart";
-import "../../../../shared/widgets/art_pop_card.dart";
-import "../../../../shared/widgets/buttons.dart";
-import "../../../../shared/widgets/confirmation_dialog.dart";
-import "../../../../shared/widgets/form_fields.dart";
+import "../../../../shared/widgets/glossip_components.dart";
 import "../../../../shared/widgets/hashtag_text.dart";
 
 class GossipCard extends StatefulWidget {
@@ -47,7 +44,7 @@ class _GossipCardState extends State<GossipCard> {
     final isAuthor = post.authorId == sessionState.user?.id;
     final timeLabel = DateFormat.Hm("pt_BR").format(post.timestamp);
 
-    return HoverArtPopCard(
+    return GlossipHoverCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -121,23 +118,24 @@ class _GossipCardState extends State<GossipCard> {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   if (isAuthor)
-                    IconChipButton(
+                    GlossipMiniChipButton(
                       label: post.isFollowing ? "🔔" : "🔕",
-                      onTap: () => context.read<FeedCubit>().toggleFollowGossip(post.id),
+                      onTap: () =>
+                          context.read<FeedCubit>().toggleFollowGossip(post.id),
                     ),
                   if (isAuthor)
-                    IconChipButton(
+                    GlossipMiniChipButton(
                       label: "✏️",
                       onTap: () => setState(() => isEditing = !isEditing),
                     ),
                   if (isAuthor)
-                    IconChipButton(
+                    GlossipMiniChipButton(
                       label: "🗑️",
                       onTap: () async {
                         final confirmed =
                             await showDialog<bool>(
                               context: context,
-                              builder: (context) => const ConfirmationDialog(
+                              builder: (context) => const GlossipConfirmationDialog(
                                 title:
                                     "Tem certeza que deseja excluir esta fofoca?",
                                 confirmLabel: "Excluir",
@@ -186,7 +184,10 @@ class _GossipCardState extends State<GossipCard> {
             GlossipButton(
               label: "Salvar",
               onPressed: () {
-                context.read<FeedCubit>().updateGossip(post.id, editController.text.trim());
+                context.read<FeedCubit>().updateGossip(
+                  post.id,
+                  editController.text.trim(),
+                );
                 setState(() => isEditing = false);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -216,7 +217,7 @@ class _GossipCardState extends State<GossipCard> {
             if (post.imageUrl != null) ...[
               const SizedBox(height: 20),
               Container(
-                decoration: borderedBoxDecoration(
+                decoration: glossipBoxDecoration(
                   color: Colors.white,
                   shadowOffset: const Offset(6, 6),
                 ),
@@ -238,9 +239,9 @@ class _GossipCardState extends State<GossipCard> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              const ActionChipButton(label: "👍 Like"),
-              const ActionChipButton(label: "👎 Dislike"),
-              ActionChipButton(
+              const GlossipChipButton(label: "👍 Like"),
+              const GlossipChipButton(label: "👎 Dislike"),
+              GlossipChipButton(
                 label: "💬 Comentar (${post.comments.length})",
                 active: showComments,
                 onTap: () => setState(() => showComments = !showComments),
@@ -292,14 +293,17 @@ class _GossipCardState extends State<GossipCard> {
                                     await showDialog<bool>(
                                       context: context,
                                       builder: (context) =>
-                                          const ConfirmationDialog(
+                                          const GlossipConfirmationDialog(
                                             title: "Excluir seu comentário?",
                                             confirmLabel: "Excluir",
                                           ),
                                     ) ??
                                     false;
                                 if (confirmed) {
-                                  context.read<FeedCubit>().deleteComment(post.id, comment.id);
+                                  context.read<FeedCubit>().deleteComment(
+                                    post.id,
+                                    comment.id,
+                                  );
                                 }
                               },
                               icon: const Icon(Icons.delete_outline),

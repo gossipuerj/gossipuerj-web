@@ -8,7 +8,11 @@ import "../dtos/login_response_dto.dart";
 import "../dtos/user_profile_response_dto.dart";
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl(this._remoteDataSource, this._tokenStore, this._errorMapper);
+  AuthRepositoryImpl(
+    this._remoteDataSource,
+    this._tokenStore,
+    this._errorMapper,
+  );
 
   final AuthRemoteDataSource _remoteDataSource;
   final TokenStore _tokenStore;

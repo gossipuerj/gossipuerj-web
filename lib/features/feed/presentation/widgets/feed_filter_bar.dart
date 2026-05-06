@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 
 import "../../../../core/theme/glossip_colors.dart";
-import "../../../../shared/widgets/buttons.dart";
+import "../../../../shared/widgets/glossip_components.dart";
 
 class FeedFilterBar extends StatelessWidget {
   const FeedFilterBar({

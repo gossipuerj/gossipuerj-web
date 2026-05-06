@@ -6,10 +6,7 @@ class AuthRemoteDataSource {
   final Dio _dio;
 
   Future<void> requestLoginMagicLink(String email) async {
-    await _dio.post(
-      "/api/v1/auth/login",
-      data: {"email": email},
-    );
+    await _dio.post("/api/v1/auth/login", data: {"email": email});
   }
 
   Future<void> register({

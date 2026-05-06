@@ -5,9 +5,7 @@ import "../../../domain/models/university_event.dart";
 import "../../../shared/layout/page_container.dart";
 import "../../../shared/state/mock_app_cubits.dart";
 import "../../../shared/utils/event_category_color.dart";
-import "../../../shared/widgets/art_pop_card.dart";
-import "../../../shared/widgets/buttons.dart";
-import "../../../shared/widgets/labels.dart";
+import "../../../shared/widgets/glossip_components.dart";
 import "widgets/add_event_dialog.dart";
 import "widgets/events_calendar_card.dart";
 
@@ -51,14 +49,15 @@ class _EventsPageState extends State<EventsPage> {
     final month = currentDate.month;
     final totalDays = DateUtils.getDaysInMonth(year, month);
     final startDay = DateTime(year, month, 1).weekday % 7;
-    final selectedEvents = state.events[selectedDate] ?? const <UniversityEvent>[];
+    final selectedEvents =
+        state.events[selectedDate] ?? const <UniversityEvent>[];
 
     return PageContainer(
       maxWidth: 1100,
       padding: const EdgeInsets.fromLTRB(24, 80, 24, 40),
       child: Column(
         children: [
-          const HeroTitle(
+          const GlossipHeroTitle(
             titleStart: "Calendário de ",
             titleHighlight: "Eventos",
             subtitle: "Fique por dentro de tudo o que acontece na UERJ.",
@@ -79,20 +78,24 @@ class _EventsPageState extends State<EventsPage> {
                   selectedDate: selectedDate,
                   events: state.events,
                   onMoveMonth: _moveMonth,
-                  onSelectDate: (dateKey) => setState(() => selectedDate = dateKey),
+                  onSelectDate: (dateKey) =>
+                      setState(() => selectedDate = dateKey),
                 ),
               ),
               SizedBox(width: isStacked ? 0 : 32, height: isStacked ? 24 : 0),
               SizedBox(
                 width: isStacked ? double.infinity : 400,
-                child: ArtPopCard(
+                child: GlossipCard(
                   padding: EdgeInsets.all(width < 600 ? 24 : 32),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.calendar_month, color: Colors.pinkAccent),
+                          const Icon(
+                            Icons.calendar_month,
+                            color: Colors.pinkAccent,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -104,16 +107,20 @@ class _EventsPageState extends State<EventsPage> {
                               ),
                             ),
                           ),
-                          SquareIconButton(
+                          GlossipIconButton(
                             icon: Icons.add,
                             background: Colors.cyanAccent,
                             onTap: () async {
                               final result = await showDialog<UniversityEvent>(
                                 context: context,
-                                builder: (context) => AddEventDialog(selectedDate: selectedDate),
+                                builder: (context) =>
+                                    AddEventDialog(selectedDate: selectedDate),
                               );
                               if (result != null) {
-                                context.read<EventsCubit>().addEvent(dateKey: selectedDate, event: result);
+                                context.read<EventsCubit>().addEvent(
+                                  dateKey: selectedDate,
+                                  event: result,
+                                );
                               }
                             },
                           ),
@@ -127,7 +134,10 @@ class _EventsPageState extends State<EventsPage> {
                             child: Text(
                               "NENHUM EVENTO PROGRAMADO PARA ESTE DIA.",
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                           ),
                         )
@@ -135,22 +145,30 @@ class _EventsPageState extends State<EventsPage> {
                         for (final event in selectedEvents)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 20),
-                            child: ArtPopCard(
+                            child: GlossipCard(
                               padding: const EdgeInsets.all(24),
                               shadowOffset: const Offset(6, 6),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: eventCategoryColor(event.category),
-                                      border: Border.all(color: Colors.black, width: 2),
+                                      border: Border.all(
+                                        color: Colors.black,
+                                        width: 2,
+                                      ),
                                     ),
                                     child: Text(
                                       event.category.toUpperCase(),
                                       style: TextStyle(
-                                        color: event.category == "Acadêmico" ? Colors.black : Colors.white,
+                                        color: event.category == "Acadêmico"
+                                            ? Colors.black
+                                            : Colors.white,
                                         fontWeight: FontWeight.w900,
                                         fontSize: 12,
                                       ),
@@ -168,7 +186,10 @@ class _EventsPageState extends State<EventsPage> {
                                   const SizedBox(height: 8),
                                   Text(
                                     event.description,
-                                    style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700),
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ],
                               ),

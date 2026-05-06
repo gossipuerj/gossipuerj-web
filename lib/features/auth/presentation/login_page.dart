@@ -5,9 +5,7 @@ import "package:google_fonts/google_fonts.dart";
 
 import "../../../core/theme/glossip_colors.dart";
 import "../../../shared/layout/page_container.dart";
-import "../../../shared/widgets/art_pop_card.dart";
-import "../../../shared/widgets/buttons.dart";
-import "../../../shared/widgets/form_fields.dart";
+import "../../../shared/widgets/glossip_components.dart";
 import "auth/auth_cubit.dart";
 import "auth/auth_state.dart";
 
@@ -59,78 +57,42 @@ class _LoginPageState extends State<LoginPage> {
           showDialog<void>(
             context: context,
             barrierColor: Colors.black.withValues(alpha: 0.35),
-            builder: (context) => Dialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 24,
-              ),
-              child: ArtPopCard(
-                color: const Color(0xFFFFF7FB),
-                shadowOffset: const Offset(14, 14),
-                padding: const EdgeInsets.all(28),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: borderedBoxDecoration(
-                        color: GlossipColors.accent,
-                        borderWidth: 3,
-                        shadowOffset: const Offset(6, 6),
-                      ),
-                      child: Text(
-                        "ERRO INTERNO",
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
-                          color: Colors.black,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
+            builder: (context) => GlossipDialog(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const GlossipDialogHeader(
+                    title: "Algo deu errado no servidor.",
+                    eyebrow: "Erro interno",
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "O servidor encontrou um erro interno ao processar sua solicitação. Tente novamente em instantes.",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      "Algo deu errado no servidor.",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.outfit(
-                        color: Colors.black,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                      ),
+                  ),
+                  const SizedBox(height: 24),
+                  GlossipButton(
+                    label: "Fechar",
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      context.read<AuthCubit>().clearFeedback();
+                    },
+                    expanded: true,
+                    emphasizedLabel: true,
+                    foreground: Colors.white,
+                    background: GlossipColors.primary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "O servidor encontrou um erro interno ao processar sua solicitação. Tente novamente em instantes.",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.outfit(
-                        color: Colors.black.withValues(alpha: 0.65),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    GlossipButton(
-                      label: "Fechar",
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        context.read<AuthCubit>().clearFeedback();
-                      },
-                      expanded: true,
-                      emphasizedLabel: true,
-                      foreground: Colors.white,
-                      background: GlossipColors.primary,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           );
@@ -156,7 +118,9 @@ class _LoginPageState extends State<LoginPage> {
         }
       },
       builder: (context, state) {
-        final cardTextTheme = GoogleFonts.outfitTextTheme(Theme.of(context).textTheme);
+        final cardTextTheme = GoogleFonts.outfitTextTheme(
+          Theme.of(context).textTheme,
+        );
         return PageContainer(
           maxWidth: 450,
           padding: const EdgeInsets.all(24),
@@ -171,7 +135,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Transform.scale(scale: scale, child: child),
                 );
               },
-              child: ArtPopCard(
+              child: GlossipCard(
                 color: const Color(0xFFFFF7FB),
                 shadowOffset: const Offset(14, 14),
                 padding: const EdgeInsets.all(32),
@@ -226,7 +190,7 @@ class _LoginPageState extends State<LoginPage> {
                           if (!isLogin) ...[
                             _FieldBlock(
                               label: "Nome",
-                              child: GlassField(
+                              child: GlossipGlassField(
                                 controller: firstNameController,
                                 hint: "Seu nome",
                                 darkText: true,
@@ -236,7 +200,7 @@ class _LoginPageState extends State<LoginPage> {
                             const SizedBox(height: 24),
                             _FieldBlock(
                               label: "Sobrenome",
-                              child: GlassField(
+                              child: GlossipGlassField(
                                 controller: lastNameController,
                                 hint: "Seu sobrenome",
                                 darkText: true,
@@ -247,7 +211,7 @@ class _LoginPageState extends State<LoginPage> {
                           ],
                           _FieldBlock(
                             label: isLogin ? "Email" : "Email Institucional",
-                            child: GlassField(
+                            child: GlossipGlassField(
                               controller: emailController,
                               hint: "voce@graduacao.uerj.br",
                               onChanged: isLogin
@@ -260,14 +224,15 @@ class _LoginPageState extends State<LoginPage> {
                               darkText: true,
                             ),
                             errorText: isLogin
-                                ? (loginEmailError ?? state.fieldErrors["email"])
+                                ? (loginEmailError ??
+                                      state.fieldErrors["email"])
                                 : state.fieldErrors["email"],
                           ),
                           if (!isLogin) ...[
                             const SizedBox(height: 24),
                             _FieldBlock(
                               label: "Email Pessoal (Opcional)",
-                              child: GlassField(
+                              child: GlossipGlassField(
                                 controller: personalEmailController,
                                 hint: "voce@gmail.com",
                                 darkText: true,
@@ -311,10 +276,12 @@ class _LoginPageState extends State<LoginPage> {
                                       return;
                                     }
                                     context.read<AuthCubit>().register(
-                                      firstName: firstNameController.text.trim(),
+                                      firstName: firstNameController.text
+                                          .trim(),
                                       lastName: lastNameController.text.trim(),
                                       email: emailController.text.trim(),
-                                      personalEmail: personalEmailController.text
+                                      personalEmail:
+                                          personalEmailController.text
                                               .trim()
                                               .isEmpty
                                           ? null
@@ -379,11 +346,7 @@ class _LoginPageState extends State<LoginPage> {
 }
 
 class _FieldBlock extends StatelessWidget {
-  const _FieldBlock({
-    required this.label,
-    required this.child,
-    this.errorText,
-  });
+  const _FieldBlock({required this.label, required this.child, this.errorText});
 
   final String label;
   final Widget child;

@@ -5,11 +5,8 @@ import "../../../domain/models/chat_message.dart";
 import "../../../domain/models/conversation_summary.dart";
 import "../../../shared/layout/page_container.dart";
 import "../../../shared/state/mock_app_cubits.dart";
-import "../../../shared/widgets/art_pop_card.dart";
 import "../../../shared/widgets/avatar.dart";
-import "../../../shared/widgets/buttons.dart";
-import "../../../shared/widgets/form_fields.dart";
-import "../../../shared/widgets/labels.dart";
+import "../../../shared/widgets/glossip_components.dart";
 
 class MessagesPage extends StatefulWidget {
   const MessagesPage({super.key, this.initialUsername});
@@ -44,7 +41,9 @@ class _MessagesPageState extends State<MessagesPage> {
     if (username == null || username.isEmpty) {
       return;
     }
-    final conversation = context.read<MessagesCubit>().openOrCreateConversation(username);
+    final conversation = context.read<MessagesCubit>().openOrCreateConversation(
+      username,
+    );
     setState(() => selectedChat = conversation);
   }
 
@@ -60,8 +59,9 @@ class _MessagesPageState extends State<MessagesPage> {
     final state = context.watch<MessagesCubit>().state;
     final width = MediaQuery.sizeOf(context).width;
     final mobile = width < 600;
-    final activeMessages =
-        selectedChat == null ? const <ChatMessage>[] : state.chatHistory[selectedChat!.id] ?? const [];
+    final activeMessages = selectedChat == null
+        ? const <ChatMessage>[]
+        : state.chatHistory[selectedChat!.id] ?? const [];
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (scrollController.hasClients) {
@@ -76,7 +76,7 @@ class _MessagesPageState extends State<MessagesPage> {
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const PageHeader(
+                const GlossipPageHeader(
                   title: "Suas Conversas",
                   subtitle: "Diga algo para seus crushes e amigos da UERJ.",
                 ),
@@ -86,13 +86,19 @@ class _MessagesPageState extends State<MessagesPage> {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: GestureDetector(
                       onTap: () => setState(() => selectedChat = conversation),
-                      child: ArtPopCard(
-                        shadowColor: conversation.unread ? Colors.pinkAccent : Colors.black,
+                      child: GlossipCard(
+                        shadowColor: conversation.unread
+                            ? Colors.pinkAccent
+                            : Colors.black,
                         shadowOffset: const Offset(8, 8),
                         padding: const EdgeInsets.all(20),
                         child: Row(
                           children: [
-                            UserAvatar(username: conversation.user, square: true, size: 64),
+                            UserAvatar(
+                              username: conversation.user,
+                              square: true,
+                              size: 64,
+                            ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(
@@ -113,7 +119,9 @@ class _MessagesPageState extends State<MessagesPage> {
                                       Text(
                                         conversation.timeLabel,
                                         style: TextStyle(
-                                          color: Colors.black.withValues(alpha: 0.6),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.6,
+                                          ),
                                           fontWeight: FontWeight.w800,
                                         ),
                                       ),
@@ -139,21 +147,35 @@ class _MessagesPageState extends State<MessagesPage> {
               ],
             )
           : Container(
-              height: mobile ? MediaQuery.sizeOf(context).height - 90 : MediaQuery.sizeOf(context).height * 0.75,
-              decoration: borderedBoxDecoration(color: Colors.white, shadowOffset: mobile ? Offset.zero : const Offset(12, 12)),
+              height: mobile
+                  ? MediaQuery.sizeOf(context).height - 90
+                  : MediaQuery.sizeOf(context).height * 0.75,
+              decoration: glossipBoxDecoration(
+                color: Colors.white,
+                shadowOffset: mobile ? Offset.zero : const Offset(12, 12),
+              ),
               child: Column(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: const BoxDecoration(
                       color: Colors.yellow,
-                      border: Border(bottom: BorderSide(color: Colors.black, width: 4)),
+                      border: Border(
+                        bottom: BorderSide(color: Colors.black, width: 4),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        SquareIconButton(icon: Icons.arrow_back, onTap: () => setState(() => selectedChat = null)),
+                        GlossipIconButton(
+                          icon: Icons.arrow_back,
+                          onTap: () => setState(() => selectedChat = null),
+                        ),
                         const SizedBox(width: 16),
-                        UserAvatar(username: selectedChat!.user, square: true, size: 44),
+                        UserAvatar(
+                          username: selectedChat!.user,
+                          square: true,
+                          size: 44,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -179,12 +201,19 @@ class _MessagesPageState extends State<MessagesPage> {
                           final message = activeMessages[index];
                           final mine = message.sender == ChatSender.me;
                           return Align(
-                            alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+                            alignment: mine
+                                ? Alignment.centerRight
+                                : Alignment.centerLeft,
                             child: Container(
-                              constraints: BoxConstraints(maxWidth: mobile ? width * 0.78 : 420),
+                              constraints: BoxConstraints(
+                                maxWidth: mobile ? width * 0.78 : 420,
+                              ),
                               margin: const EdgeInsets.only(bottom: 16),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              decoration: borderedBoxDecoration(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: glossipBoxDecoration(
                                 color: mine ? Colors.pinkAccent : Colors.white,
                                 shadowOffset: const Offset(4, 4),
                                 borderWidth: 3,
@@ -204,10 +233,17 @@ class _MessagesPageState extends State<MessagesPage> {
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.viewInsetsOf(context).bottom),
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      20,
+                      20,
+                      20 + MediaQuery.viewInsetsOf(context).bottom,
+                    ),
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      border: Border(top: BorderSide(color: Colors.black, width: 4)),
+                      border: Border(
+                        top: BorderSide(color: Colors.black, width: 4),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -216,13 +252,18 @@ class _MessagesPageState extends State<MessagesPage> {
                             child: TextField(
                               controller: newMessageController,
                               onChanged: (_) => setState(() {}),
-                              decoration: const InputDecoration.collapsed(hintText: "Mensagem"),
-                              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
+                              decoration: const InputDecoration.collapsed(
+                                hintText: "Mensagem",
+                              ),
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 12),
-                        SquareIconButton(
+                        GlossipIconButton(
                           icon: Icons.send,
                           background: Colors.cyanAccent,
                           onTap: newMessageController.text.trim().isEmpty

@@ -5,8 +5,7 @@ import "package:google_fonts/google_fonts.dart";
 
 import "../../../core/theme/glossip_colors.dart";
 import "../../../shared/layout/page_container.dart";
-import "../../../shared/widgets/art_pop_card.dart";
-import "../../../shared/widgets/buttons.dart";
+import "../../../shared/widgets/glossip_components.dart";
 import "auth/auth_cubit.dart";
 import "auth/auth_state.dart";
 import "session/session_state.dart";
@@ -45,7 +44,8 @@ class _VerifyPageState extends State<VerifyPage> {
         BlocListener<AuthCubit, AuthState>(
           listener: (context, authState) {
             if (authState.status == AuthStatus.verified &&
-                context.read<SessionCubit>().state.status == SessionStatus.authenticated) {
+                context.read<SessionCubit>().state.status ==
+                    SessionStatus.authenticated) {
               context.go("/profile");
             }
           },
@@ -65,7 +65,7 @@ class _VerifyPageState extends State<VerifyPage> {
             maxWidth: 450,
             padding: const EdgeInsets.all(24),
             child: Center(
-              child: ArtPopCard(
+              child: GlossipCard(
                 color: const Color(0xFFFFF7FB),
                 shadowOffset: const Offset(14, 14),
                 padding: const EdgeInsets.all(32),

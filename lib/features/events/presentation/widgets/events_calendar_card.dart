@@ -2,8 +2,7 @@ import "package:flutter/material.dart";
 
 import "../../../../domain/models/university_event.dart";
 import "../../../../shared/utils/event_category_color.dart";
-import "../../../../shared/widgets/art_pop_card.dart";
-import "../../../../shared/widgets/buttons.dart";
+import "../../../../shared/widgets/glossip_components.dart";
 
 class EventsCalendarCard extends StatelessWidget {
   const EventsCalendarCard({
@@ -33,13 +32,13 @@ class EventsCalendarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ArtPopCard(
+    return GlossipCard(
       padding: EdgeInsets.all(width < 600 ? 16 : 32),
       child: Column(
         children: [
           Row(
             children: [
-              SquareIconButton(
+              GlossipIconButton(
                 icon: Icons.chevron_left,
                 onTap: () => onMoveMonth(-1),
               ),
@@ -54,7 +53,7 @@ class EventsCalendarCard extends StatelessWidget {
                   ),
                 ),
               ),
-              SquareIconButton(
+              GlossipIconButton(
                 icon: Icons.chevron_right,
                 onTap: () => onMoveMonth(1),
               ),
@@ -106,7 +105,7 @@ class EventsCalendarCard extends StatelessWidget {
               return GestureDetector(
                 onTap: () => onSelectDate(dateKey),
                 child: Container(
-                  decoration: borderedBoxDecoration(
+                  decoration: glossipBoxDecoration(
                     color: selected ? Colors.black : Colors.white,
                     shadowColor: selected ? Colors.pinkAccent : Colors.black,
                     shadowOffset: selected ? const Offset(8, 8) : Offset.zero,
@@ -130,7 +129,7 @@ class EventsCalendarCard extends StatelessWidget {
                           child: Container(
                             width: 12,
                             height: 12,
-                            decoration: borderedBoxDecoration(
+                            decoration: glossipBoxDecoration(
                               color: eventCategoryColor("Acadêmico"),
                               borderWidth: 2,
                               shadowOffset: const Offset(2, 2),

@@ -7,10 +7,7 @@ import "../../../features/auth/presentation/session/session_cubit.dart";
 import "../../../shared/layout/page_container.dart";
 import "../../../shared/seed/mock_seed_data.dart";
 import "../../../shared/state/mock_app_cubits.dart";
-import "../../../shared/widgets/art_pop_card.dart";
-import "../../../shared/widgets/buttons.dart";
-import "../../../shared/widgets/form_fields.dart";
-import "../../../shared/widgets/labels.dart";
+import "../../../shared/widgets/glossip_components.dart";
 import "widgets/profile_grid_card.dart";
 
 class CrushesPage extends StatefulWidget {
@@ -39,7 +36,8 @@ class _CrushesPageState extends State<CrushesPage> {
     final sessionState = context.watch<SessionCubit>().state;
     final search = searchController.text.toLowerCase();
     final filtered = profilesState.profiles.where((profile) {
-      if (sessionState.isAuthenticated && profile.username == sessionState.user?.username) {
+      if (sessionState.isAuthenticated &&
+          profile.username == sessionState.user?.username) {
         return false;
       }
       if (!profile.showInGallery) {
@@ -50,13 +48,23 @@ class _CrushesPageState extends State<CrushesPage> {
           (profile.firstName ?? "").toLowerCase().contains(search) ||
           (profile.lastName ?? "").toLowerCase().contains(search);
       final profileCourse = profile.course ?? "";
-      final profileGender = profilesCubit.normalizedGender(profile.gender ?? "");
-      final profileOrientation = profilesCubit.normalizedOrientation(profile.orientation ?? "");
-      final matchesCourse = selectedCourse == "Todos" || profileCourse == selectedCourse;
-      final matchesGender = selectedGender == "Todos" || profileGender == selectedGender;
+      final profileGender = profilesCubit.normalizedGender(
+        profile.gender ?? "",
+      );
+      final profileOrientation = profilesCubit.normalizedOrientation(
+        profile.orientation ?? "",
+      );
+      final matchesCourse =
+          selectedCourse == "Todos" || profileCourse == selectedCourse;
+      final matchesGender =
+          selectedGender == "Todos" || profileGender == selectedGender;
       final matchesOrientation =
-          selectedOrientation == "Todos" || profileOrientation == selectedOrientation;
-      return matchesSearch && matchesCourse && matchesGender && matchesOrientation;
+          selectedOrientation == "Todos" ||
+          profileOrientation == selectedOrientation;
+      return matchesSearch &&
+          matchesCourse &&
+          matchesGender &&
+          matchesOrientation;
     }).toList();
 
     final width = MediaQuery.sizeOf(context).width;
@@ -73,17 +81,18 @@ class _CrushesPageState extends State<CrushesPage> {
       padding: const EdgeInsets.fromLTRB(24, 80, 24, 40),
       child: Column(
         children: [
-          const HeroTitle(
+          const GlossipHeroTitle(
             titleStart: "Galeria de ",
             titleHighlight: "Crushes",
-            subtitle: "Encontre outros alunos da UERJ e demonstre seu interesse.",
+            subtitle:
+                "Encontre outros alunos da UERJ e demonstre seu interesse.",
             gradient2: true,
           ),
           const SizedBox(height: 32),
           if (!sessionState.isAuthenticated)
             Padding(
               padding: const EdgeInsets.only(bottom: 32),
-              child: ArtPopCard(
+              child: GlossipCard(
                 color: Colors.yellow,
                 shadowOffset: const Offset(8, 8),
                 child: Row(
@@ -109,11 +118,16 @@ class _CrushesPageState extends State<CrushesPage> {
                 ),
               ),
             ),
-          ArtPopCard(
+          GlossipCard(
             child: Column(
               children: [
                 GlossipInput(
-                  padding: const EdgeInsets.only(left: 14, right: 14, top: 10, bottom: 10),
+                  padding: const EdgeInsets.only(
+                    left: 14,
+                    right: 14,
+                    top: 10,
+                    bottom: 10,
+                  ),
                   child: Row(
                     children: [
                       const Icon(Icons.search, color: Colors.black),
@@ -139,23 +153,26 @@ class _CrushesPageState extends State<CrushesPage> {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final vertical = constraints.maxWidth < 768;
-                    final courseDropdown = DropdownGroup(
+                    final courseDropdown = GlossipLabeledSelectField(
                       label: "Curso",
                       value: selectedCourse,
                       items: const ["Todos", ...uerjCourses],
-                      onChanged: (value) => setState(() => selectedCourse = value),
+                      onChanged: (value) =>
+                          setState(() => selectedCourse = value),
                     );
-                    final genderDropdown = DropdownGroup(
+                    final genderDropdown = GlossipLabeledSelectField(
                       label: "Gênero",
                       value: selectedGender,
                       items: genders,
-                      onChanged: (value) => setState(() => selectedGender = value),
+                      onChanged: (value) =>
+                          setState(() => selectedGender = value),
                     );
-                    final orientationDropdown = DropdownGroup(
+                    final orientationDropdown = GlossipLabeledSelectField(
                       label: "Orientação",
                       value: selectedOrientation,
                       items: orientations,
-                      onChanged: (value) => setState(() => selectedOrientation = value),
+                      onChanged: (value) =>
+                          setState(() => selectedOrientation = value),
                     );
                     if (vertical) {
                       return Column(
@@ -185,11 +202,14 @@ class _CrushesPageState extends State<CrushesPage> {
           ),
           const SizedBox(height: 24),
           if (filtered.isEmpty)
-            const ArtPopCard(
+            const GlossipCard(
               child: Center(
                 child: Text(
                   "NENHUM PERFIL CORRESPONDE AOS SEUS FILTROS.",
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             )
@@ -204,7 +224,8 @@ class _CrushesPageState extends State<CrushesPage> {
                 mainAxisSpacing: 20,
                 childAspectRatio: 0.72,
               ),
-              itemBuilder: (context, index) => ProfileGridCard(profile: filtered[index]),
+              itemBuilder: (context, index) =>
+                  ProfileGridCard(profile: filtered[index]),
             ),
         ],
       ),

@@ -6,10 +6,8 @@ import "../../../features/auth/presentation/session/session_cubit.dart";
 import "../../../features/auth/presentation/session/session_state.dart";
 import "../../../shared/layout/page_container.dart";
 import "../../../shared/state/mock_app_cubits.dart";
-import "../../../shared/widgets/art_pop_card.dart";
 import "../../../shared/widgets/avatar.dart";
-import "../../../shared/widgets/buttons.dart";
-import "../../../shared/widgets/form_fields.dart";
+import "../../../shared/widgets/glossip_components.dart";
 import "profile_cubit.dart";
 import "profile_state.dart";
 import "../../feed/presentation/widgets/gossip_card.dart";
@@ -79,13 +77,17 @@ class _ProfilePageState extends State<ProfilePage> {
           if (profileState.user == null && sessionState.user != null) {
             context.read<ProfileCubit>().setUserFromSession();
           }
-          _hydrate(profileState.user == null ? ProfileState(user: sessionState.user) : profileState);
+          _hydrate(
+            profileState.user == null
+                ? ProfileState(user: sessionState.user)
+                : profileState,
+          );
           final user = profileState.user ?? sessionState.user;
 
           if (user == null) {
             return PageContainer(
               maxWidth: 800,
-              child: ArtPopCard(
+              child: GlossipCard(
                 child: Column(
                   children: [
                     const Text(
@@ -114,7 +116,7 @@ class _ProfilePageState extends State<ProfilePage> {
             maxWidth: 900,
             child: Column(
               children: [
-                ArtPopCard(
+                GlossipCard(
                   child: Column(
                     children: [
                       Row(
@@ -158,7 +160,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                   Text(
                                     user.personalEmail!,
                                     style: TextStyle(
-                                      color: Colors.black.withValues(alpha: 0.7),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.7,
+                                      ),
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -180,16 +184,26 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(height: 24),
                       Row(
                         children: [
-                          Expanded(child: _StatCard(label: "Fofoquinhas", value: "${myPosts.length}")),
+                          Expanded(
+                            child: _StatCard(
+                              label: "Fofoquinhas",
+                              value: "${myPosts.length}",
+                            ),
+                          ),
                           const SizedBox(width: 16),
-                          Expanded(child: _StatCard(label: "Galeria", value: showInGallery ? "Visível" : "Oculto")),
+                          Expanded(
+                            child: _StatCard(
+                              label: "Galeria",
+                              value: showInGallery ? "Visível" : "Oculto",
+                            ),
+                          ),
                         ],
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 32),
-                ArtPopCard(
+                GlossipCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -202,21 +216,43 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      _ReadOnlyField(label: "Nome", value: user.firstName ?? "Não informado"),
+                      _ReadOnlyField(
+                        label: "Nome",
+                        value: user.firstName ?? "Não informado",
+                      ),
                       const SizedBox(height: 16),
-                      _ReadOnlyField(label: "Sobrenome", value: user.lastName ?? "Não informado"),
+                      _ReadOnlyField(
+                        label: "Sobrenome",
+                        value: user.lastName ?? "Não informado",
+                      ),
                       const SizedBox(height: 16),
-                      _ReadOnlyField(label: "Email institucional", value: user.email ?? "Não informado"),
+                      _ReadOnlyField(
+                        label: "Email institucional",
+                        value: user.email ?? "Não informado",
+                      ),
                       const SizedBox(height: 24),
-                      LabeledTextField(label: "Username", controller: usernameController),
+                      GlossipLabeledTextField(
+                        label: "Username",
+                        controller: usernameController,
+                      ),
                       const SizedBox(height: 16),
-                      LabeledTextField(label: "Curso", controller: courseController),
+                      GlossipLabeledTextField(
+                        label: "Curso",
+                        controller: courseController,
+                      ),
                       const SizedBox(height: 16),
-                      LabeledTextField(label: "Bio", controller: bioController, maxLines: 4),
+                      GlossipLabeledTextField(
+                        label: "Bio",
+                        controller: bioController,
+                        maxLines: 4,
+                      ),
                       const SizedBox(height: 16),
-                      LabeledTextField(label: "Avatar URL", controller: avatarUrlController),
+                      GlossipLabeledTextField(
+                        label: "Avatar URL",
+                        controller: avatarUrlController,
+                      ),
                       const SizedBox(height: 16),
-                      DropdownGroup(
+                      GlossipLabeledSelectField(
                         label: "Gênero",
                         value: gender,
                         items: const [
@@ -229,7 +265,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         onChanged: (value) => setState(() => gender = value),
                       ),
                       const SizedBox(height: 16),
-                      DropdownGroup(
+                      GlossipLabeledSelectField(
                         label: "Orientação",
                         value: orientation,
                         items: const [
@@ -240,18 +276,26 @@ class _ProfilePageState extends State<ProfilePage> {
                           "Pansexual",
                           "Outro",
                         ],
-                        onChanged: (value) => setState(() => orientation = value),
+                        onChanged: (value) =>
+                            setState(() => orientation = value),
                       ),
                       const SizedBox(height: 16),
                       GlossipButton(
-                        label: showInGallery ? "Perfil visível na galeria" : "Perfil oculto na galeria",
-                        background: showInGallery ? Colors.cyanAccent : const Color(0xFFF0F0F0),
-                        onPressed: () => setState(() => showInGallery = !showInGallery),
+                        label: showInGallery
+                            ? "Perfil visível na galeria"
+                            : "Perfil oculto na galeria",
+                        background: showInGallery
+                            ? Colors.cyanAccent
+                            : const Color(0xFFF0F0F0),
+                        onPressed: () =>
+                            setState(() => showInGallery = !showInGallery),
                         expanded: true,
                       ),
                       const SizedBox(height: 20),
                       GlossipButton(
-                        label: profileState.isSaving ? "Salvando..." : "Salvar alterações",
+                        label: profileState.isSaving
+                            ? "Salvando..."
+                            : "Salvar alterações",
                         onPressed: profileState.isSaving
                             ? null
                             : () {
@@ -310,7 +354,7 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ArtPopCard(
+    return GlossipCard(
       shadowOffset: const Offset(8, 8),
       child: Column(
         children: [
@@ -324,7 +368,10 @@ class _StatCard extends StatelessWidget {
           ),
           Text(
             label.toUpperCase(),
-            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ],
       ),
@@ -343,13 +390,16 @@ class _ReadOnlyField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FieldLabel(label),
+        GlossipFieldLabel(label),
         const SizedBox(height: 8),
         GlossipInput(
           background: const Color(0xFFF5F5F5),
           child: Text(
             value,
-            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
       ],

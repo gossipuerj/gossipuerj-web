@@ -3,11 +3,7 @@ import "package:equatable/equatable.dart";
 import "../../../../domain/models/user_profile.dart";
 
 class SessionState extends Equatable {
-  const SessionState({
-    required this.status,
-    this.user,
-    this.message,
-  });
+  const SessionState({required this.status, this.user, this.message});
 
   const SessionState.initial() : this(status: SessionStatus.initial);
 

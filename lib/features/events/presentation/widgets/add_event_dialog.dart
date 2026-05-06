@@ -1,9 +1,7 @@
 import "package:flutter/material.dart";
 
 import "../../../../domain/models/university_event.dart";
-import "../../../../shared/widgets/art_pop_card.dart";
-import "../../../../shared/widgets/buttons.dart";
-import "../../../../shared/widgets/form_fields.dart";
+import "../../../../shared/widgets/glossip_components.dart";
 
 class AddEventDialog extends StatefulWidget {
   const AddEventDialog({super.key, required this.selectedDate});
@@ -32,108 +30,87 @@ class _AddEventDialogState extends State<AddEventDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: ArtPopCard(
-        shadowOffset: const Offset(20, 20),
-        padding: const EdgeInsets.all(32),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      "CADASTRAR NOVO EVENTO",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 28,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                    ),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
+    return GlossipDialog(
+      shadowOffset: const Offset(20, 20),
+      padding: const EdgeInsets.all(32),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GlossipDialogHeader(
+              title: "CADASTRAR NOVO EVENTO",
+              trailing: GlossipIconButton(
+                icon: Icons.close,
+                background: Colors.black,
+                foreground: Colors.white,
+                onTap: () => Navigator.of(context).pop(),
               ),
-              const SizedBox(height: 8),
-              Text(
-                "DATA: ${widget.selectedDate.split("-").reversed.join("/")}",
-                style: const TextStyle(
-                  color: Colors.pinkAccent,
-                  fontWeight: FontWeight.w900,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "DATA: ${widget.selectedDate.split("-").reversed.join("/")}",
+              style: const TextStyle(
+                color: Colors.pinkAccent,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 24),
+            GlossipLabeledTextField(
+              label: "Título do Evento",
+              controller: titleController,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: GlossipLabeledSelectField(
+                    label: "Categoria",
+                    value: category,
+                    items: const ["Social", "Acadêmico", "Esporte", "Cultura"],
+                    onChanged: (value) => setState(() => category = value),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              LabeledTextField(
-                label: "Título do Evento",
-                controller: titleController,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownGroup(
-                      label: "Categoria",
-                      value: category,
-                      items: const [
-                        "Social",
-                        "Acadêmico",
-                        "Esporte",
-                        "Cultura",
-                      ],
-                      onChanged: (value) => setState(() => category = value),
-                    ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: GlossipLabeledTextField(
+                    label: "Horário",
+                    controller: timeController,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: LabeledTextField(
-                      label: "Horário",
-                      controller: timeController,
-                    ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            GlossipLabeledTextField(
+              label: "Localização",
+              controller: locationController,
+            ),
+            const SizedBox(height: 16),
+            GlossipLabeledTextField(
+              label: "Descrição",
+              controller: descriptionController,
+              maxLines: 4,
+            ),
+            const SizedBox(height: 20),
+            GlossipButton(
+              label: "Salvar Evento",
+              onPressed: () {
+                if (titleController.text.trim().isEmpty) {
+                  return;
+                }
+                Navigator.of(context).pop(
+                  UniversityEvent(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    title: titleController.text.trim(),
+                    category: category,
+                    location: locationController.text.trim(),
+                    time: timeController.text.trim(),
+                    description: descriptionController.text.trim(),
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              LabeledTextField(
-                label: "Localização",
-                controller: locationController,
-              ),
-              const SizedBox(height: 16),
-              LabeledTextField(
-                label: "Descrição",
-                controller: descriptionController,
-                maxLines: 4,
-              ),
-              const SizedBox(height: 20),
-              GlossipButton(
-                label: "Salvar Evento",
-                onPressed: () {
-                  if (titleController.text.trim().isEmpty) {
-                    return;
-                  }
-                  Navigator.of(context).pop(
-                    UniversityEvent(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      title: titleController.text.trim(),
-                      category: category,
-                      location: locationController.text.trim(),
-                      time: timeController.text.trim(),
-                      description: descriptionController.text.trim(),
-                    ),
-                  );
-                },
-                expanded: true,
-              ),
-            ],
-          ),
+                );
+              },
+              expanded: true,
+            ),
+          ],
         ),
       ),
     );

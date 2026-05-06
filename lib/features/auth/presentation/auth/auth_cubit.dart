@@ -16,9 +16,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthState(status: AuthStatus.submitting));
     try {
       await _authRepository.requestLoginMagicLink(email);
-      emit(
-        AuthState(status: AuthStatus.magicLinkSent, email: email),
-      );
+      emit(AuthState(status: AuthStatus.magicLinkSent, email: email));
     } on ValidationException catch (error) {
       emit(
         AuthState(
@@ -52,9 +50,7 @@ class AuthCubit extends Cubit<AuthState> {
         email: email,
         personalEmail: personalEmail,
       );
-      emit(
-        AuthState(status: AuthStatus.registrationSubmitted, email: email),
-      );
+      emit(AuthState(status: AuthStatus.registrationSubmitted, email: email));
     } on ValidationException catch (error) {
       emit(
         AuthState(

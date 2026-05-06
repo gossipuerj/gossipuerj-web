@@ -2,9 +2,7 @@ import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 
 import "../../../../shared/state/mock_app_cubits.dart";
-import "../../../../shared/widgets/art_pop_card.dart";
-import "../../../../shared/widgets/buttons.dart";
-import "../../../../shared/widgets/form_fields.dart";
+import "../../../../shared/widgets/glossip_components.dart";
 
 class FeedComposer extends StatelessWidget {
   const FeedComposer({
@@ -24,7 +22,7 @@ class FeedComposer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ArtPopCard(
+    return GlossipCard(
       shadowOffset: const Offset(12, 12),
       child: Column(
         children: [
@@ -71,7 +69,7 @@ class FeedComposer extends StatelessWidget {
               runSpacing: 8,
               spacing: 12,
               children: [
-                DropdownField(
+                GlossipSelectField(
                   value: composerCategory,
                   items: const ["Fofoca", "Desabafo", "Paquera"],
                   onChanged: onCategoryChanged,
@@ -100,7 +98,9 @@ class FeedComposer extends StatelessWidget {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text("Publicação enviada anonimamente!"),
+                                content: Text(
+                                  "Publicação enviada anonimamente!",
+                                ),
                               ),
                             );
                           }

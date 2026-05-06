@@ -7,10 +7,8 @@ import "../../../../domain/models/user_profile.dart";
 import "../../../../features/auth/presentation/session/session_cubit.dart";
 import "../../../../shared/state/mock_app_cubits.dart";
 import "../../../../shared/utils/external_launchers.dart";
-import "../../../../shared/widgets/art_pop_card.dart";
 import "../../../../shared/widgets/avatar.dart";
-import "../../../../shared/widgets/buttons.dart";
-import "../../../../shared/widgets/labels.dart";
+import "../../../../shared/widgets/glossip_components.dart";
 
 class ProfileGridCard extends StatelessWidget {
   const ProfileGridCard({super.key, required this.profile});
@@ -24,7 +22,7 @@ class ProfileGridCard extends StatelessWidget {
     final isOwnProfile = profile.username == sessionState.user?.username;
     final liked = profilesState.likedProfiles.contains(profile.username);
 
-    return ArtPopCard(
+    return GlossipCard(
       padding: const EdgeInsets.all(16),
       shadowOffset: const Offset(8, 8),
       child: Column(
@@ -51,16 +49,19 @@ class ProfileGridCard extends StatelessWidget {
           ),
           Text(
             "@${profile.username}",
-            style: const TextStyle(color: GlossipColors.primary, fontWeight: FontWeight.w900),
+            style: const TextStyle(
+              color: GlossipColors.primary,
+              fontWeight: FontWeight.w900,
+            ),
           ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
             runSpacing: 6,
             children: [
-              TagLabel(text: profile.course ?? "Curso não inf."),
-              TagLabel(text: profile.gender ?? "Não informado"),
-              TagLabel(text: profile.orientation ?? "Não informado"),
+              GlossipTag(text: profile.course ?? "Curso não inf."),
+              GlossipTag(text: profile.gender ?? "Não informado"),
+              GlossipTag(text: profile.orientation ?? "Não informado"),
             ],
           ),
           const Spacer(),
@@ -68,7 +69,7 @@ class ProfileGridCard extends StatelessWidget {
             children: [
               if (profile.instagram != null)
                 Expanded(
-                  child: SquareActionButton(
+                  child: GlossipIconTileButton(
                     icon: Icons.camera_alt_outlined,
                     onTap: () => openInstagram(profile.instagram!),
                   ),
@@ -76,9 +77,10 @@ class ProfileGridCard extends StatelessWidget {
               if (profile.instagram != null) const SizedBox(width: 10),
               if (!isOwnProfile)
                 Expanded(
-                  child: SquareActionButton(
+                  child: GlossipIconTileButton(
                     icon: Icons.chat_bubble_outline,
-                    onTap: () => context.go("/messages?user=${profile.username}"),
+                    onTap: () =>
+                        context.go("/messages?user=${profile.username}"),
                   ),
                 ),
             ],
@@ -95,7 +97,10 @@ class ProfileGridCard extends StatelessWidget {
               child: const Text(
                 "VOCÊ",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             )
           else
@@ -113,7 +118,9 @@ class ProfileGridCard extends StatelessWidget {
                         ),
                       );
                     }
-                  : () => context.read<ProfilesCubit>().toggleLikedProfile(profile.username),
+                  : () => context.read<ProfilesCubit>().toggleLikedProfile(
+                      profile.username,
+                    ),
               expanded: true,
             ),
         ],

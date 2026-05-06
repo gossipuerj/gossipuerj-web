@@ -4,7 +4,7 @@ import "package:flutter_bloc/flutter_bloc.dart";
 import "../../../core/theme/app_breakpoints.dart";
 import "../../../shared/layout/page_container.dart";
 import "../../../shared/state/mock_app_cubits.dart";
-import "../../../shared/widgets/art_pop_card.dart";
+import "../../../shared/widgets/glossip_components.dart";
 import "../../../shared/widgets/gretchen_blob.dart";
 import "widgets/feed_composer.dart";
 import "widgets/feed_filter_bar.dart";
@@ -90,7 +90,7 @@ class _FeedPageState extends State<FeedPage> {
           Column(
             children: [
               if (filtered.isEmpty)
-                const ArtPopCard(
+                const GlossipCard(
                   child: Center(
                     child: Text(
                       "NENHUMA FOFOCA ENCONTRADA NESTA CATEGORIA.",
