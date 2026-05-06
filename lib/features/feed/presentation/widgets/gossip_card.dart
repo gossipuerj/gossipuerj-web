@@ -20,21 +20,17 @@ class GossipCard extends StatefulWidget {
 
 class _GossipCardState extends State<GossipCard> {
   bool showComments = false;
-  bool isEditing = false;
-  late final TextEditingController editController = TextEditingController(
-    text: widget.post.content,
-  );
   final commentController = TextEditingController();
 
   @override
   void dispose() {
-    editController.dispose();
     commentController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final feedCubit = context.read<FeedCubit>();
     final feedState = context.watch<FeedCubit>().state;
     final sessionState = context.watch<SessionCubit>().state;
     final post = feedState.gossips.firstWhere(
@@ -42,7 +38,9 @@ class _GossipCardState extends State<GossipCard> {
       orElse: () => widget.post,
     );
     final isAuthor = post.authorId == sessionState.user?.id;
-    final timeLabel = DateFormat.Hm("pt_BR").format(post.timestamp);
+    final isLiked = feedCubit.isPostLiked(post.id);
+    final isCommentsLoading = feedCubit.isCommentsLoading(post.id);
+    final timeLabel = DateFormat("dd/MM HH:mm", "pt_BR").format(post.timestamp);
 
     return GlossipHoverCard(
       child: Column(
@@ -65,7 +63,7 @@ class _GossipCardState extends State<GossipCard> {
                         border: Border.all(color: Colors.black, width: 2),
                       ),
                       child: Text(
-                        post.category.toUpperCase(),
+                        feedCubit.displayCategory(post.category).toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
@@ -73,43 +71,24 @@ class _GossipCardState extends State<GossipCard> {
                         ),
                       ),
                     ),
-                    if (post.target != null) ...[
-                      const SizedBox(height: 4),
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          const Text(
-                            "Para:",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE6FAFF),
-                              border: Border.all(
-                                color: GlossipColors.black,
-                                width: 2,
-                              ),
-                            ),
-                            child: Text(
-                              post.target!,
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 10),
+                    Text(
+                      post.title.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        height: 1.1,
                       ),
-                    ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      feedCubit.postAuthorLabel(post),
+                      style: TextStyle(
+                        color: Colors.black.withValues(alpha: 0.65),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -119,40 +98,28 @@ class _GossipCardState extends State<GossipCard> {
                 children: [
                   if (isAuthor)
                     GlossipMiniChipButton(
-                      label: post.isFollowing ? "🔔" : "🔕",
-                      onTap: () =>
-                          context.read<FeedCubit>().toggleFollowGossip(post.id),
-                    ),
-                  if (isAuthor)
-                    GlossipMiniChipButton(
-                      label: "✏️",
-                      onTap: () => setState(() => isEditing = !isEditing),
-                    ),
-                  if (isAuthor)
-                    GlossipMiniChipButton(
                       label: "🗑️",
                       onTap: () async {
+                        final feedCubit = context.read<FeedCubit>();
+                        final messenger = ScaffoldMessenger.of(context);
                         final confirmed =
                             await showDialog<bool>(
                               context: context,
                               builder: (context) => const GlossipConfirmationDialog(
-                                title:
-                                    "Tem certeza que deseja excluir esta fofoca?",
+                                title: "Tem certeza que deseja excluir esta fofoca?",
                                 confirmLabel: "Excluir",
                               ),
                             ) ??
                             false;
-                        if (confirmed) {
-                          context.read<FeedCubit>().deleteGossip(post.id);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  "Fofoca excluída (Simulação Mock)!",
-                                ),
-                              ),
-                            );
-                          }
+                        if (!confirmed) {
+                          return;
+                        }
+                        await feedCubit.deleteGossip(post.id);
+                        if (context.mounted &&
+                            feedCubit.state.message == null) {
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text("Fofoca excluída!")),
+                          );
                         }
                       },
                     ),
@@ -168,83 +135,61 @@ class _GossipCardState extends State<GossipCard> {
             ],
           ),
           const SizedBox(height: 16),
-          if (isEditing) ...[
-            GlossipInput(
-              child: TextField(
-                controller: editController,
-                maxLines: 4,
-                decoration: const InputDecoration.collapsed(hintText: ""),
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w800,
+          HashtagText(
+            post.content,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w900,
+              fontSize: 20,
+              height: 1.4,
+              letterSpacing: -0.2,
+              shadows: [
+                Shadow(
+                  color: Colors.black12,
+                  offset: Offset(0.6, 0),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+          ),
+          if (post.imageUrl != null) ...[
+            const SizedBox(height: 20),
+            Container(
+              decoration: glossipBoxDecoration(
+                color: Colors.white,
+                shadowOffset: const Offset(6, 6),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Image.network(
+                post.imageUrl!,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const SizedBox(
+                  height: 200,
+                  child: Center(child: Text("Imagem indisponível")),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            GlossipButton(
-              label: "Salvar",
-              onPressed: () {
-                context.read<FeedCubit>().updateGossip(
-                  post.id,
-                  editController.text.trim(),
-                );
-                setState(() => isEditing = false);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Conteúdo atualizado (Simulação Mock)!"),
-                  ),
-                );
-              },
-            ),
-          ] else ...[
-            HashtagText(
-              post.content,
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                height: 1.4,
-                letterSpacing: -0.2,
-                shadows: [
-                  Shadow(
-                    color: Colors.black12,
-                    offset: Offset(0.6, 0),
-                    blurRadius: 0,
-                  ),
-                ],
-              ),
-            ),
-            if (post.imageUrl != null) ...[
-              const SizedBox(height: 20),
-              Container(
-                decoration: glossipBoxDecoration(
-                  color: Colors.white,
-                  shadowOffset: const Offset(6, 6),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Image.network(
-                  post.imageUrl!,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const SizedBox(
-                    height: 200,
-                    child: Center(child: Text("Imagem indisponível")),
-                  ),
-                ),
-              ),
-            ],
           ],
           const SizedBox(height: 16),
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              const GlossipChipButton(label: "👍 Like"),
-              const GlossipChipButton(label: "👎 Dislike"),
               GlossipChipButton(
-                label: "💬 Comentar (${post.comments.length})",
+                label: "${isLiked ? "💔" : "👍"} Like (${post.likesCount})",
+                active: isLiked,
+                onTap: () => context.read<FeedCubit>().toggleLikeGossip(post.id),
+              ),
+              GlossipChipButton(
+                label: "💬 Comentar",
                 active: showComments,
-                onTap: () => setState(() => showComments = !showComments),
+                onTap: () {
+                  setState(() => showComments = !showComments);
+                  if (showComments && post.comments.isEmpty) {
+                    context.read<FeedCubit>().loadComments(post.id);
+                  }
+                },
               ),
             ],
           ),
@@ -259,58 +204,78 @@ class _GossipCardState extends State<GossipCard> {
               ),
               child: Column(
                 children: [
-                  for (final comment in post.comments)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.black, width: 2),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text.rich(
-                              TextSpan(
-                                style: const TextStyle(color: Colors.black),
-                                children: [
-                                  TextSpan(
-                                    text: "${comment.author}: ",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
+                  if (isCommentsLoading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: GlossipSpinnerProgressIndicator(radius: 24),
+                    )
+                  else ...[
+                    for (final comment in post.comments)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black, width: 2),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text.rich(
+                                TextSpan(
+                                  style: const TextStyle(color: Colors.black),
+                                  children: [
+                                    TextSpan(
+                                      text:
+                                          "${feedCubit.commentAuthorLabel(comment)}: ",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                      ),
                                     ),
-                                  ),
-                                  TextSpan(text: comment.text),
-                                ],
+                                    TextSpan(text: comment.content),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          if (comment.authorId != null &&
-                              comment.authorId == sessionState.user?.id)
-                            IconButton(
-                              onPressed: () async {
-                                final confirmed =
-                                    await showDialog<bool>(
-                                      context: context,
-                                      builder: (context) =>
-                                          const GlossipConfirmationDialog(
-                                            title: "Excluir seu comentário?",
-                                            confirmLabel: "Excluir",
-                                          ),
-                                    ) ??
-                                    false;
-                                if (confirmed) {
-                                  context.read<FeedCubit>().deleteComment(
-                                    post.id,
-                                    comment.id,
-                                  );
-                                }
-                              },
-                              icon: const Icon(Icons.delete_outline),
-                            ),
-                        ],
+                            if (comment.authorId != null &&
+                                comment.authorId == sessionState.user?.id)
+                              IconButton(
+                                onPressed: () async {
+                                  final feedCubit = context.read<FeedCubit>();
+                                  final confirmed =
+                                      await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) =>
+                                            const GlossipConfirmationDialog(
+                                              title: "Excluir seu comentário?",
+                                              confirmLabel: "Excluir",
+                                            ),
+                                      ) ??
+                                      false;
+                                  if (confirmed) {
+                                    await feedCubit.deleteComment(
+                                      post.id,
+                                      comment.id,
+                                    );
+                                  }
+                                },
+                                icon: const Icon(Icons.delete_outline),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
+                    if (post.comments.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          "Ainda não há comentários.",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                  ],
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -318,6 +283,7 @@ class _GossipCardState extends State<GossipCard> {
                         child: GlossipInput(
                           child: TextField(
                             controller: commentController,
+                            maxLength: 250,
                             onChanged: (_) => setState(() {}),
                             decoration: const InputDecoration.collapsed(
                               hintText: "Escreva um comentário...",
@@ -336,13 +302,19 @@ class _GossipCardState extends State<GossipCard> {
                         foreground: Colors.white,
                         onPressed: commentController.text.trim().isEmpty
                             ? null
-                            : () {
-                                context.read<FeedCubit>().addComment(
+                            : () async {
+                                final feedCubit = context.read<FeedCubit>();
+                                await feedCubit.addComment(
                                   post.id,
                                   commentController.text.trim(),
                                 );
-                                commentController.clear();
-                                setState(() {});
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                if (feedCubit.state.message == null) {
+                                  commentController.clear();
+                                  setState(() {});
+                                }
                               },
                       ),
                     ],

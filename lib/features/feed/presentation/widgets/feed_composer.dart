@@ -7,14 +7,14 @@ import "../../../../shared/widgets/glossip_components.dart";
 class FeedComposer extends StatelessWidget {
   const FeedComposer({
     super.key,
-    required this.targetController,
+    required this.titleController,
     required this.contentController,
     required this.composerCategory,
     required this.onCategoryChanged,
     required this.onChanged,
   });
 
-  final TextEditingController targetController;
+  final TextEditingController titleController;
   final TextEditingController contentController;
   final String composerCategory;
   final ValueChanged<String> onCategoryChanged;
@@ -22,16 +22,19 @@ class FeedComposer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final feedState = context.watch<FeedCubit>().state;
+
     return GlossipCard(
       shadowOffset: const Offset(12, 12),
       child: Column(
         children: [
           GlossipInput(
             child: TextField(
-              controller: targetController,
+              controller: titleController,
+              maxLength: 250,
+              onChanged: (_) => onChanged(),
               decoration: const InputDecoration.collapsed(
-                hintText:
-                    "Para quem é? (Ex: @username, @curso, Alguém do Bandejão...)",
+                hintText: "Título da publicação",
               ),
               style: const TextStyle(
                 color: Colors.black,
@@ -84,18 +87,25 @@ class FeedComposer extends StatelessWidget {
                 GlossipButton(
                   label: "Publicar Anonimamente",
                   emphasizedLabel: true,
-                  onPressed: contentController.text.trim().isEmpty
+                  onPressed:
+                      contentController.text.trim().isEmpty ||
+                          titleController.text.trim().isEmpty ||
+                          feedState.isSubmitting
                       ? null
                       : () async {
                           await context.read<FeedCubit>().postGossip(
-                            target: targetController.text.trim(),
+                            title: titleController.text.trim(),
                             content: contentController.text.trim(),
                             category: composerCategory,
                           );
-                          targetController.clear();
-                          contentController.clear();
-                          onChanged();
-                          if (context.mounted) {
+                          if (!context.mounted) {
+                            return;
+                          }
+                          final nextState = context.read<FeedCubit>().state;
+                          if (nextState.message == null) {
+                            titleController.clear();
+                            contentController.clear();
+                            onChanged();
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
