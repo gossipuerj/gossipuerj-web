@@ -1,14 +1,39 @@
 import "../../../domain/models/gossip_post.dart";
+import "../../../domain/models/gossip_comment.dart";
+import "models/feed_posts_page.dart";
 
 abstract class FeedRepository {
-  List<GossipPost> load();
-}
+  Future<FeedPostsPage> load({
+    String? category,
+    int page = 0,
+    int pageSize = 20,
+  });
 
-class InMemoryFeedRepository implements FeedRepository {
-  const InMemoryFeedRepository(this.seedData);
+  Future<GossipPost> createPost({
+    required String title,
+    required String content,
+    required String category,
+  });
 
-  final List<GossipPost> seedData;
+  Future<void> deletePost(String postId);
 
-  @override
-  List<GossipPost> load() => List<GossipPost>.from(seedData);
+  Future<void> likePost(String postId);
+
+  Future<void> unlikePost(String postId);
+
+  Future<List<GossipComment>> loadComments(
+    String postId, {
+    int page = 0,
+    int pageSize = 20,
+  });
+
+  Future<GossipComment> createComment({
+    required String postId,
+    required String content,
+  });
+
+  Future<void> deleteComment({
+    required String postId,
+    required String commentId,
+  });
 }

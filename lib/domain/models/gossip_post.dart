@@ -3,44 +3,45 @@ import "gossip_comment.dart";
 class GossipPost {
   const GossipPost({
     required this.id,
+    required this.title,
     required this.content,
     required this.timestamp,
     required this.category,
-    required this.authorId,
-    this.target,
+    this.authorId,
+    this.likesCount = 0,
     this.imageUrl,
-    this.isFollowing = false,
     this.comments = const [],
   });
 
   final String id;
+  final String title;
   final String content;
   final DateTime timestamp;
   final String category;
-  final String authorId;
-  final String? target;
+  final String? authorId;
+  final int likesCount;
   final String? imageUrl;
-  final bool isFollowing;
   final List<GossipComment> comments;
 
   GossipPost copyWith({
+    String? title,
     String? content,
     DateTime? timestamp,
     String? category,
-    String? target,
+    String? authorId,
+    int? likesCount,
     String? imageUrl,
-    bool? isFollowing,
     List<GossipComment>? comments,
   }) {
     return GossipPost(
       id: id,
+      title: title ?? this.title,
       content: content ?? this.content,
       timestamp: timestamp ?? this.timestamp,
       category: category ?? this.category,
-      authorId: authorId,
-      target: target ?? this.target,
+      authorId: authorId ?? this.authorId,
+      likesCount: likesCount ?? this.likesCount,
       imageUrl: imageUrl ?? this.imageUrl,
-      isFollowing: isFollowing ?? this.isFollowing,
       comments: comments ?? this.comments,
     );
   }

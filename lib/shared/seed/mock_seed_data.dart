@@ -157,68 +157,68 @@ final List<UserProfile> mockProfiles = [
 final List<GossipPost> mockGossips = [
   GossipPost(
     id: "g1",
+    title: "Menino da camisa amarela",
     content:
         "Alguém vium o menino da camisa amarela no 5º andar? Que gato! #paquera #uerj #maracana",
     category: "Paquera",
-    target: "@menino_amarelo",
     timestamp: DateTime.now(),
     authorId: "user-123",
     imageUrl:
         "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800",
-    comments: const [
+    comments: [
       GossipComment(
         id: "c1",
-        text: "Gente, eu tava lá e foi exatamente assim!",
-        author: "Anônimo",
+        content: "Gente, eu tava lá e foi exatamente assim!",
+        createdAt: DateTime.now(),
       ),
       GossipComment(
         id: "c2",
-        text: "Alguém sabe quem era o rapaz?",
-        author: "Anônimo",
+        content: "Alguém sabe quem era o rapaz?",
+        createdAt: DateTime.now(),
       ),
     ],
   ),
   GossipPost(
     id: "g2",
+    title: "Bandejão aprovado",
     content:
         "O bandejão hoje estava nota 10, parabéns para a equipe! #bandejao #uerjfome #delicia",
     category: "Fofoca",
-    target: "Bandejão",
     timestamp: DateTime.now().subtract(const Duration(hours: 1)),
     authorId: "mari-456",
     imageUrl:
         "https://images.unsplash.com/photo-1567521464027-f127ff144326?q=80&w=800",
-    comments: const [
+    comments: [
       GossipComment(
         id: "c3",
-        text: "Gente, eu tava lá e foi exatamente assim!",
-        author: "Anônimo",
+        content: "Gente, eu tava lá e foi exatamente assim!",
+        createdAt: DateTime.now(),
       ),
       GossipComment(
         id: "c4",
-        text: "Alguém sabe quem era o rapaz?",
-        author: "Anônimo",
+        content: "Alguém sabe quem era o rapaz?",
+        createdAt: DateTime.now(),
       ),
     ],
   ),
   GossipPost(
     id: "g3",
+    title: "Socorro cálculo 2",
     content:
         "Não aguento mais essa prova de Cálculo 2, socorro! #calculo2 #engenharia #uerjdesespero",
     category: "Desabafo",
-    target: "Cálculo 2",
     timestamp: DateTime.now().subtract(const Duration(hours: 2)),
     authorId: "lucas-789",
-    comments: const [
+    comments: [
       GossipComment(
         id: "c5",
-        text: "Gente, eu tava lá e foi exatamente assim!",
-        author: "Anônimo",
+        content: "Gente, eu tava lá e foi exatamente assim!",
+        createdAt: DateTime.now(),
       ),
       GossipComment(
         id: "c6",
-        text: "Alguém sabe quem era o rapaz?",
-        author: "Anônimo",
+        content: "Alguém sabe quem era o rapaz?",
+        createdAt: DateTime.now(),
       ),
     ],
   ),

@@ -12,6 +12,9 @@ import "../../features/auth/data/datasources/auth_remote_data_source.dart";
 import "../../features/auth/data/repositories/auth_repository_impl.dart";
 import "../../features/auth/presentation/auth/auth_cubit.dart";
 import "../../features/auth/presentation/session/session_cubit.dart";
+import "../../features/feed/data/datasources/feed_remote_data_source.dart";
+import "../../features/feed/data/feed_repository.dart";
+import "../../features/feed/data/repositories/feed_repository_impl.dart";
 import "../../features/profile/presentation/profile_cubit.dart";
 import "../../shared/state/mock_app_cubits.dart";
 import "../config/app_config.dart";
@@ -44,6 +47,10 @@ Future<void> setupDependencies() async {
       getIt<ErrorMapper>(),
     ),
   );
+  getIt.registerSingleton(FeedRemoteDataSource(getIt<Dio>()));
+  getIt.registerSingleton<FeedRepository>(
+    FeedRepositoryImpl(getIt<FeedRemoteDataSource>(), getIt<ErrorMapper>()),
+  );
   getIt.registerSingleton(
     SessionCubit(getIt<AuthRepository>(), getIt<TokenStore>()),
   );
@@ -53,7 +60,7 @@ Future<void> setupDependencies() async {
   getIt.registerFactory(
     () => ProfileCubit(getIt<AuthRepository>(), getIt<SessionCubit>()),
   );
-  getIt.registerSingleton(FeedCubit(getIt<SessionCubit>()));
+  getIt.registerSingleton(FeedCubit(getIt<FeedRepository>(), getIt<SessionCubit>()));
   getIt.registerSingleton(ProfilesCubit());
   getIt.registerSingleton(MessagesCubit());
   getIt.registerSingleton(EventsCubit());

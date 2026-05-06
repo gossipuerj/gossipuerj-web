@@ -1,6 +1,7 @@
 import "package:flutter_test/flutter_test.dart";
 
 import "package:flutter_app/features/auth/presentation/session/session_cubit.dart";
+import "package:flutter_app/domain/models/gossip_post.dart";
 import "package:flutter_app/shared/state/mock_app_cubits.dart";
 
 import "support/fakes.dart";
@@ -20,17 +21,54 @@ void main() {
   group("feedCubit", () {
     test("post and comment use the current logged user", () async {
       final authRepository = FakeAuthRepository();
+      final feedRepository = FakeFeedRepository();
       final tokenStore = InMemoryTokenStore(initialToken: "abc");
       final sessionCubit = SessionCubit(authRepository, tokenStore);
       await sessionCubit.start();
-      final feedCubit = FeedCubit(sessionCubit);
+      final feedCubit = FeedCubit(feedRepository, sessionCubit);
 
-      await feedCubit.postGossip(target: "@curso", content: "Novo post", category: "Fofoca");
+      await feedCubit.postGossip(
+        title: "Novo título",
+        content: "Novo post",
+        category: "Fofoca",
+      );
 
       final created = feedCubit.state.gossips.first;
       expect(created.authorId, authRepository.user.id);
-      feedCubit.addComment(created.id, "Comentário");
+      await feedCubit.addComment(created.id, "Comentário");
       expect(feedCubit.state.gossips.first.comments.last.authorId, authRepository.user.id);
+    });
+
+    test("loadMorePosts appends the next page", () async {
+      final posts = List.generate(
+        25,
+        (index) => GossipPost(
+          id: "post-$index",
+          title: "Título $index",
+          content: "Conteúdo $index",
+          timestamp: DateTime(2026, 1, 1).add(Duration(minutes: index)),
+          category: "GOSSIP",
+          authorId: "user-123",
+        ),
+      ).reversed.toList();
+      final authRepository = FakeAuthRepository();
+      final tokenStore = InMemoryTokenStore(initialToken: "abc");
+      final sessionCubit = SessionCubit(authRepository, tokenStore);
+      await sessionCubit.start();
+      final feedCubit = FeedCubit(
+        FakeFeedRepository(initialPosts: posts),
+        sessionCubit,
+      );
+
+      await Future<void>.delayed(Duration.zero);
+
+      expect(feedCubit.state.gossips.length, 20);
+      expect(feedCubit.state.hasMore, isTrue);
+
+      await feedCubit.loadMorePosts();
+
+      expect(feedCubit.state.gossips.length, 25);
+      expect(feedCubit.state.hasMore, isFalse);
     });
   });
 

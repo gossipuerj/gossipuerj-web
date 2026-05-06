@@ -5,106 +5,281 @@ import "package:equatable/equatable.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:intl/intl.dart";
 
+import "../../core/error/app_exception.dart";
 import "../../domain/models/chat_message.dart";
 import "../../domain/models/conversation_summary.dart";
 import "../../domain/models/gossip_comment.dart";
 import "../../domain/models/gossip_post.dart";
 import "../../domain/models/university_event.dart";
 import "../../domain/models/user_profile.dart";
+import "../../features/feed/data/feed_repository.dart";
 import "../seed/mock_seed_data.dart";
 import "../../features/auth/presentation/session/session_cubit.dart";
 
 class FeedState extends Equatable {
-  const FeedState({required this.gossips});
+  const FeedState({
+    required this.gossips,
+    this.isLoading = false,
+    this.isLoadingMore = false,
+    this.isSubmitting = false,
+    this.currentPage = 0,
+    this.hasMore = true,
+    this.loadingCommentsFor = const <String>{},
+    this.likedPostIds = const <String>{},
+    this.message,
+    this.selectedCategory,
+  });
 
   final List<GossipPost> gossips;
+  final bool isLoading;
+  final bool isLoadingMore;
+  final bool isSubmitting;
+  final int currentPage;
+  final bool hasMore;
+  final Set<String> loadingCommentsFor;
+  final Set<String> likedPostIds;
+  final String? message;
+  final String? selectedCategory;
+
+  FeedState copyWith({
+    List<GossipPost>? gossips,
+    bool? isLoading,
+    bool? isLoadingMore,
+    bool? isSubmitting,
+    int? currentPage,
+    bool? hasMore,
+    Set<String>? loadingCommentsFor,
+    Set<String>? likedPostIds,
+    String? message,
+    bool clearMessage = false,
+    String? selectedCategory,
+    bool clearSelectedCategory = false,
+  }) {
+    return FeedState(
+      gossips: gossips ?? this.gossips,
+      isLoading: isLoading ?? this.isLoading,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      currentPage: currentPage ?? this.currentPage,
+      hasMore: hasMore ?? this.hasMore,
+      loadingCommentsFor: loadingCommentsFor ?? this.loadingCommentsFor,
+      likedPostIds: likedPostIds ?? this.likedPostIds,
+      message: clearMessage ? null : (message ?? this.message),
+      selectedCategory: clearSelectedCategory
+          ? null
+          : (selectedCategory ?? this.selectedCategory),
+    );
+  }
 
   @override
-  List<Object?> get props => [gossips];
+  List<Object?> get props => [
+    gossips,
+    isLoading,
+    isLoadingMore,
+    isSubmitting,
+    currentPage,
+    hasMore,
+    loadingCommentsFor,
+    likedPostIds,
+    message,
+    selectedCategory,
+  ];
 }
 
 class FeedCubit extends Cubit<FeedState> {
-  FeedCubit(this._sessionCubit)
-    : super(FeedState(gossips: List<GossipPost>.from(mockGossips)));
+  static const _pageSize = 20;
 
+  FeedCubit(this._repository, this._sessionCubit)
+    : super(const FeedState(gossips: [])) {
+    loadPosts();
+  }
+
+  final FeedRepository _repository;
   final SessionCubit _sessionCubit;
 
+  Future<void> loadPosts({String? category}) async {
+    emit(
+      state.copyWith(
+        isLoading: true,
+        isLoadingMore: false,
+        clearMessage: true,
+        selectedCategory: category,
+      ),
+    );
+    try {
+      final page = await _repository.load(
+        category: _toApiCategory(category),
+        page: 0,
+        pageSize: _pageSize,
+      );
+      emit(
+        state.copyWith(
+          gossips: page.posts,
+          isLoading: false,
+          currentPage: page.page,
+          hasMore: page.hasMore,
+        ),
+      );
+    } on AppException catch (error) {
+      emit(state.copyWith(isLoading: false, message: error.message));
+    }
+  }
+
+  Future<void> loadMorePosts() async {
+    if (state.isLoading || state.isLoadingMore || !state.hasMore) {
+      return;
+    }
+
+    emit(state.copyWith(isLoadingMore: true, clearMessage: true));
+    try {
+      final page = await _repository.load(
+        category: _toApiCategory(state.selectedCategory),
+        page: state.currentPage + 1,
+        pageSize: _pageSize,
+      );
+      emit(
+        state.copyWith(
+          isLoadingMore: false,
+          gossips: [...state.gossips, ...page.posts],
+          currentPage: page.page,
+          hasMore: page.hasMore,
+        ),
+      );
+    } on AppException catch (error) {
+      emit(state.copyWith(isLoadingMore: false, message: error.message));
+    }
+  }
+
   Future<void> postGossip({
-    required String target,
+    required String title,
     required String content,
     required String category,
   }) async {
-    final userId = _sessionCubit.state.user?.id ?? "anonymous";
-    final post = GossipPost(
-      id: "g-${DateTime.now().microsecondsSinceEpoch}",
-      content: content,
-      timestamp: DateTime.now(),
-      category: category,
-      authorId: userId,
-      target: target.isEmpty ? null : target,
-      comments: const [],
-    );
-    emit(FeedState(gossips: [post, ...state.gossips]));
+    emit(state.copyWith(isSubmitting: true, clearMessage: true));
+    try {
+      final post = await _repository.createPost(
+        title: title,
+        content: content,
+        category: _toApiCategory(category)!,
+      );
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          gossips: [post, ...state.gossips],
+        ),
+      );
+    } on AppException catch (error) {
+      emit(state.copyWith(isSubmitting: false, message: error.message));
+    }
   }
 
-  void updateGossip(String gossipId, String content) {
-    emit(
-      FeedState(
-        gossips: state.gossips
-            .map(
-              (item) =>
-                  item.id == gossipId ? item.copyWith(content: content) : item,
-            )
-            .toList(),
-      ),
-    );
+  Future<void> deleteGossip(String gossipId) async {
+    try {
+      await _repository.deletePost(gossipId);
+      emit(
+        state.copyWith(
+          gossips: state.gossips.where((item) => item.id != gossipId).toList(),
+        ),
+      );
+    } on AppException catch (error) {
+      emit(state.copyWith(message: error.message));
+    }
   }
 
-  void deleteGossip(String gossipId) {
-    emit(
-      FeedState(
-        gossips: state.gossips.where((item) => item.id != gossipId).toList(),
-      ),
-    );
+  Future<void> toggleLikeGossip(String gossipId) async {
+    final previousPosts = state.gossips;
+    final previousLikedPostIds = state.likedPostIds;
+    final likedPostIds = Set<String>.from(state.likedPostIds);
+    final isLiked = likedPostIds.contains(gossipId);
+    final posts = state.gossips.map((item) {
+      if (item.id != gossipId) {
+        return item;
+      }
+      final nextLikes = isLiked
+          ? (item.likesCount > 0 ? item.likesCount - 1 : 0)
+          : item.likesCount + 1;
+      return item.copyWith(likesCount: nextLikes);
+    }).toList();
+
+    if (isLiked) {
+      likedPostIds.remove(gossipId);
+    } else {
+      likedPostIds.add(gossipId);
+    }
+
+    emit(state.copyWith(gossips: posts, likedPostIds: likedPostIds));
+
+    try {
+      if (isLiked) {
+        await _repository.unlikePost(gossipId);
+      } else {
+        await _repository.likePost(gossipId);
+      }
+    } on AppException catch (error) {
+      emit(
+        state.copyWith(
+          gossips: previousPosts,
+          likedPostIds: previousLikedPostIds,
+          message: error.message,
+        ),
+      );
+    }
   }
 
-  void toggleFollowGossip(String gossipId) {
-    emit(
-      FeedState(
-        gossips: state.gossips
-            .map(
-              (item) => item.id == gossipId
-                  ? item.copyWith(isFollowing: !item.isFollowing)
-                  : item,
-            )
-            .toList(),
-      ),
-    );
+  Future<void> loadComments(String gossipId) async {
+    final loading = Set<String>.from(state.loadingCommentsFor)..add(gossipId);
+    emit(state.copyWith(loadingCommentsFor: loading, clearMessage: true));
+    try {
+      final comments = await _repository.loadComments(gossipId);
+      final nextLoading = Set<String>.from(state.loadingCommentsFor)
+        ..remove(gossipId);
+      emit(
+        state.copyWith(
+          gossips: state.gossips.map((item) {
+            if (item.id != gossipId) {
+              return item;
+            }
+            return item.copyWith(comments: comments);
+          }).toList(),
+          loadingCommentsFor: nextLoading,
+        ),
+      );
+    } on AppException catch (error) {
+      final nextLoading = Set<String>.from(state.loadingCommentsFor)
+        ..remove(gossipId);
+      emit(
+        state.copyWith(loadingCommentsFor: nextLoading, message: error.message),
+      );
+    }
   }
 
-  void addComment(String gossipId, String text) {
-    final comment = GossipComment(
-      id: "comment-${DateTime.now().microsecondsSinceEpoch}",
-      text: text,
-      author: _sessionCubit.state.isAuthenticated ? "@você" : "Anônimo",
-      authorId: _sessionCubit.state.user?.id,
-    );
-    emit(
-      FeedState(
-        gossips: state.gossips.map((item) {
-          if (item.id != gossipId) {
-            return item;
-          }
-          return item.copyWith(comments: [...item.comments, comment]);
-        }).toList(),
-      ),
-    );
+  Future<void> addComment(String gossipId, String text) async {
+    try {
+      final comment = await _repository.createComment(
+        postId: gossipId,
+        content: text,
+      );
+      emit(
+        state.copyWith(
+          gossips: state.gossips.map((item) {
+            if (item.id != gossipId) {
+              return item;
+            }
+            return item.copyWith(comments: [...item.comments, comment]);
+          }).toList(),
+        ),
+      );
+    } on AppException catch (error) {
+      emit(state.copyWith(message: error.message));
+    }
   }
 
-  void deleteComment(String gossipId, String commentId) {
-    emit(
-      FeedState(
-        gossips: state.gossips.map((item) {
+  Future<void> deleteComment(String gossipId, String commentId) async {
+    try {
+      await _repository.deleteComment(postId: gossipId, commentId: commentId);
+      emit(
+        state.copyWith(
+          gossips: state.gossips.map((item) {
           if (item.id != gossipId) {
             return item;
           }
@@ -114,8 +289,48 @@ class FeedCubit extends Cubit<FeedState> {
                 .toList(),
           );
         }).toList(),
-      ),
-    );
+        ),
+      );
+    } on AppException catch (error) {
+      emit(state.copyWith(message: error.message));
+    }
+  }
+
+  void clearFeedback() {
+    emit(state.copyWith(clearMessage: true));
+  }
+
+  String? _toApiCategory(String? category) {
+    switch (category) {
+      case null:
+      case "Todos":
+        return null;
+      case "Fofoca":
+        return "GOSSIP";
+      case "Desabafo":
+        return "CONFESSION";
+      case "Paquera":
+        return "FLIRT";
+      case "Pergunta":
+        return "QUESTION";
+      default:
+        return category.toUpperCase();
+    }
+  }
+
+  String displayCategory(String category) {
+    switch (category) {
+      case "GOSSIP":
+        return "Fofoca";
+      case "CONFESSION":
+        return "Desabafo";
+      case "FLIRT":
+        return "Paquera";
+      case "QUESTION":
+        return "Pergunta";
+      default:
+        return category;
+    }
   }
 
   List<GossipPost> postsByUser(String? userId) {
@@ -124,6 +339,27 @@ class FeedCubit extends Cubit<FeedState> {
     }
     return state.gossips.where((item) => item.authorId == userId).toList();
   }
+
+  String commentAuthorLabel(GossipComment comment) {
+    final currentUserId = _sessionCubit.state.user?.id;
+    if (comment.authorId != null && comment.authorId == currentUserId) {
+      return "Você";
+    }
+    return "Anônimo";
+  }
+
+  String postAuthorLabel(GossipPost post) {
+    final currentUserId = _sessionCubit.state.user?.id;
+    if (post.authorId != null && post.authorId == currentUserId) {
+      return "Você";
+    }
+    return "Anônimo";
+  }
+
+  bool isPostLiked(String postId) => state.likedPostIds.contains(postId);
+
+  bool isCommentsLoading(String postId) =>
+      state.loadingCommentsFor.contains(postId);
 }
 
 class ProfilesState extends Equatable {
