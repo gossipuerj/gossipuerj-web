@@ -66,10 +66,14 @@ GoRouter createAppRouter() {
         },
         routes: [
           GoRoute(path: "/", builder: (context, state) => const FeedPage()),
-          GoRoute(path: "/login", builder: (context, state) => const LoginPage()),
+          GoRoute(
+            path: "/login",
+            builder: (context, state) => const LoginPage(),
+          ),
           GoRoute(
             path: "/auth/verify",
-            builder: (context, state) => VerifyPage(token: state.uri.queryParameters["token"]),
+            builder: (context, state) =>
+                VerifyPage(token: state.uri.queryParameters["token"]),
           ),
           GoRoute(
             path: "/crushes",
@@ -81,8 +85,9 @@ GoRouter createAppRouter() {
           ),
           GoRoute(
             path: "/messages",
-            builder: (context, state) =>
-                MessagesPage(initialUsername: state.uri.queryParameters["user"]),
+            builder: (context, state) => MessagesPage(
+              initialUsername: state.uri.queryParameters["user"],
+            ),
           ),
           GoRoute(
             path: "/profile",

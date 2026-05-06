@@ -50,7 +50,9 @@ Future<void> setupDependencies() async {
   getIt.registerFactory(
     () => AuthCubit(getIt<AuthRepository>(), getIt<SessionCubit>()),
   );
-  getIt.registerFactory(() => ProfileCubit(getIt<AuthRepository>(), getIt<SessionCubit>()));
+  getIt.registerFactory(
+    () => ProfileCubit(getIt<AuthRepository>(), getIt<SessionCubit>()),
+  );
   getIt.registerSingleton(FeedCubit(getIt<SessionCubit>()));
   getIt.registerSingleton(ProfilesCubit());
   getIt.registerSingleton(MessagesCubit());

@@ -53,7 +53,10 @@ class ErrorMapper {
       }
 
       if (statusCode == 401) {
-        return const AppException("Sua sessão expirou. Faça login novamente.", statusCode: 401);
+        return const AppException(
+          "Sua sessão expirou. Faça login novamente.",
+          statusCode: 401,
+        );
       }
 
       return AppException(

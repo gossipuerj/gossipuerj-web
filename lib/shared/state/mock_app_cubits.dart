@@ -52,9 +52,8 @@ class FeedCubit extends Cubit<FeedState> {
       FeedState(
         gossips: state.gossips
             .map(
-              (item) => item.id == gossipId
-                  ? item.copyWith(content: content)
-                  : item,
+              (item) =>
+                  item.id == gossipId ? item.copyWith(content: content) : item,
             )
             .toList(),
       ),
@@ -128,10 +127,7 @@ class FeedCubit extends Cubit<FeedState> {
 }
 
 class ProfilesState extends Equatable {
-  const ProfilesState({
-    required this.profiles,
-    required this.likedProfiles,
-  });
+  const ProfilesState({required this.profiles, required this.likedProfiles});
 
   final List<UserProfile> profiles;
   final Set<String> likedProfiles;
@@ -180,10 +176,7 @@ class ProfilesCubit extends Cubit<ProfilesState> {
 }
 
 class MessagesState extends Equatable {
-  const MessagesState({
-    required this.conversations,
-    required this.chatHistory,
-  });
+  const MessagesState({required this.conversations, required this.chatHistory});
 
   final List<ConversationSummary> conversations;
   final Map<int, List<ChatMessage>> chatHistory;
@@ -218,7 +211,8 @@ class MessagesCubit extends Cubit<MessagesState> {
     if (existing != null) {
       return existing;
     }
-    final nextId = (state.conversations.map((item) => item.id).fold<int>(0, max)) + 1;
+    final nextId =
+        (state.conversations.map((item) => item.id).fold<int>(0, max)) + 1;
     final created = ConversationSummary(
       id: nextId,
       user: username,
