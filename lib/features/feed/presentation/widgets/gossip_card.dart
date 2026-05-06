@@ -97,9 +97,12 @@ class _GossipCardState extends State<GossipCard> {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   if (isAuthor)
-                    GlossipMiniChipButton(
-                      label: "🗑️",
-                      onTap: () async {
+                    IconButton(
+                      tooltip: "Excluir fofoca",
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      onPressed: () async {
                         final feedCubit = context.read<FeedCubit>();
                         final messenger = ScaffoldMessenger.of(context);
                         final confirmed =
@@ -122,6 +125,7 @@ class _GossipCardState extends State<GossipCard> {
                           );
                         }
                       },
+                      icon: const Icon(Icons.delete_outline, color: Colors.black),
                     ),
                   Text(
                     timeLabel,

@@ -89,15 +89,17 @@ class _FeedPageState extends State<FeedPage> {
                   ],
                 ),
                 const SizedBox(height: 40),
-                FeedComposer(
-                  titleController: titleController,
-                  contentController: contentController,
-                  composerCategory: composerCategory,
-                  onCategoryChanged: (value) =>
-                      setState(() => composerCategory = value),
-                  onChanged: () => setState(() {}),
-                ),
-                const SizedBox(height: 16),
+                if (!isCompact) ...[
+                  FeedComposer(
+                    titleController: titleController,
+                    contentController: contentController,
+                    composerCategory: composerCategory,
+                    onCategoryChanged: (value) =>
+                        setState(() => composerCategory = value),
+                    onChanged: () => setState(() {}),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 FeedFilterBar(
                   width: width,
                   categories: categories,

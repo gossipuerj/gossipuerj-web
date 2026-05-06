@@ -14,12 +14,14 @@ class ShellFrame extends StatefulWidget {
     required this.currentPath,
     required this.isLoggedIn,
     required this.onNavigate,
+    this.floatingActionButton,
   });
 
   final Widget child;
   final String currentPath;
   final bool isLoggedIn;
   final ValueChanged<String> onNavigate;
+  final Widget? floatingActionButton;
 
   @override
   State<ShellFrame> createState() => _ShellFrameState();
@@ -99,6 +101,7 @@ class _ShellFrameState extends State<ShellFrame> {
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        floatingActionButton: showMobileNav ? widget.floatingActionButton : null,
         body: SafeArea(
           top: false,
           bottom: false,

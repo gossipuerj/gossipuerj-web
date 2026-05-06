@@ -2,6 +2,8 @@ import "package:flutter/material.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
 
+import "../../../core/theme/app_breakpoints.dart";
+import "../../../domain/models/user_profile.dart";
 import "../../../features/auth/presentation/session/session_cubit.dart";
 import "../../../features/auth/presentation/session/session_state.dart";
 import "../../../shared/layout/page_container.dart";
@@ -72,6 +74,8 @@ class _ProfilePageState extends State<ProfilePage> {
           }
         },
         builder: (context, profileState) {
+          final width = MediaQuery.sizeOf(context).width;
+          final isCompact = width < AppBreakpoints.mobile;
           final sessionState = context.watch<SessionCubit>().state;
           final feedCubit = context.watch<FeedCubit>();
           if (profileState.user == null && sessionState.user != null) {
@@ -87,16 +91,22 @@ class _ProfilePageState extends State<ProfilePage> {
           if (user == null) {
             return PageContainer(
               maxWidth: 800,
+              padding: EdgeInsets.fromLTRB(
+                isCompact ? 16 : 24,
+                40,
+                isCompact ? 16 : 24,
+                40,
+              ),
               child: GlossipCard(
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       "VOCÊ PRECISA ESTAR LOGADO PARA ACESSAR O PERFIL.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.w900,
-                        fontSize: 20,
+                        fontSize: isCompact ? 16 : 20,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -114,87 +124,71 @@ class _ProfilePageState extends State<ProfilePage> {
 
           return PageContainer(
             maxWidth: 900,
+            padding: EdgeInsets.fromLTRB(
+              isCompact ? 16 : 24,
+              isCompact ? 24 : 40,
+              isCompact ? 16 : 24,
+              40,
+            ),
             child: Column(
               children: [
                 GlossipCard(
                   child: Column(
                     children: [
-                      Row(
-                        children: [
-                          UserAvatar(
-                            username: user.username,
-                            avatarUrl: avatarUrlController.text.isEmpty
-                                ? user.avatarUrl
-                                : avatarUrlController.text,
-                            size: 96,
-                            square: true,
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "@${user.username}".toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 32,
-                                  ),
-                                ),
-                                Text(
-                                  user.displayName,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text(
-                                  user.email ?? "",
-                                  style: TextStyle(
-                                    color: Colors.black.withValues(alpha: 0.7),
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                if (user.personalEmail != null)
-                                  Text(
-                                    user.personalEmail!,
-                                    style: TextStyle(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.7,
-                                      ),
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                              ],
+                      if (isCompact)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            UserAvatar(
+                              username: user.username,
+                              avatarUrl: avatarUrlController.text.isEmpty
+                                  ? user.avatarUrl
+                                  : avatarUrlController.text,
+                              size: 72,
+                              square: true,
                             ),
-                          ),
-                          GlossipButton(
-                            label: "Sair",
-                            background: Colors.white,
-                            onPressed: () async {
-                              await context.read<SessionCubit>().logout();
-                              if (context.mounted) {
-                                context.go("/");
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _ProfileIdentity(
+                                user: user,
+                                isCompact: true,
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        Row(
+                          children: [
+                            UserAvatar(
+                              username: user.username,
+                              avatarUrl: avatarUrlController.text.isEmpty
+                                  ? user.avatarUrl
+                                  : avatarUrlController.text,
+                              size: 96,
+                              square: true,
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: _ProfileIdentity(user: user),
+                            ),
+                          ],
+                        ),
+                      SizedBox(height: isCompact ? 20 : 24),
                       Row(
                         children: [
                           Expanded(
                             child: _StatCard(
                               label: "Fofoquinhas",
                               value: "${myPosts.length}",
+                              isCompact: isCompact,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          SizedBox(width: isCompact ? 12 : 16),
                           Expanded(
                             child: _StatCard(
                               label: "Galeria",
                               value: showInGallery ? "Visível" : "Oculto",
+                              isCompact: isCompact,
                             ),
                           ),
                         ],
@@ -202,35 +196,38 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: isCompact ? 24 : 32),
                 GlossipCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         "PERFIL",
                         style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.w900,
-                          fontSize: 24,
+                          fontSize: isCompact ? 20 : 24,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: isCompact ? 16 : 20),
                       _ReadOnlyField(
                         label: "Nome",
                         value: user.firstName ?? "Não informado",
+                        isCompact: isCompact,
                       ),
                       const SizedBox(height: 16),
                       _ReadOnlyField(
                         label: "Sobrenome",
                         value: user.lastName ?? "Não informado",
+                        isCompact: isCompact,
                       ),
                       const SizedBox(height: 16),
                       _ReadOnlyField(
                         label: "Email institucional",
                         value: user.email ?? "Não informado",
+                        isCompact: isCompact,
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: isCompact ? 20 : 24),
                       GlossipLabeledTextField(
                         label: "Username",
                         controller: usernameController,
@@ -291,7 +288,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             setState(() => showInGallery = !showInGallery),
                         expanded: true,
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: isCompact ? 16 : 20),
                       GlossipButton(
                         label: profileState.isSaving
                             ? "Salvando..."
@@ -314,25 +311,41 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: isCompact ? 24 : 32),
+                GlossipButton(
+                  label: "Sair",
+                  background: Colors.white,
+                  expanded: true,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isCompact ? 16 : 24,
+                    vertical: isCompact ? 10 : 12,
+                  ),
+                  onPressed: () async {
+                    await context.read<SessionCubit>().logout();
+                    if (context.mounted) {
+                      context.go("/");
+                    }
+                  },
+                ),
+                SizedBox(height: isCompact ? 24 : 32),
                 if (myPosts.isNotEmpty)
                   Column(
                     children: [
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
                           "SUAS PUBLICAÇÕES",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w900,
-                            fontSize: 22,
+                            fontSize: isCompact ? 18 : 22,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: isCompact ? 16 : 20),
                       for (final gossip in myPosts)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 24),
+                          padding: EdgeInsets.only(bottom: isCompact ? 16 : 24),
                           child: GossipCard(post: gossip),
                         ),
                     ],
@@ -346,11 +359,73 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
+class _ProfileIdentity extends StatelessWidget {
+  const _ProfileIdentity({required this.user, this.isCompact = false});
+
+  final UserProfile user;
+  final bool isCompact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "@${user.username}".toUpperCase(),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w900,
+            fontSize: isCompact ? 22 : 32,
+          ),
+        ),
+        Text(
+          user.displayName,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w700,
+            fontSize: isCompact ? 14 : 16,
+          ),
+        ),
+        Text(
+          user.email ?? "",
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.black.withValues(alpha: 0.7),
+            fontWeight: FontWeight.w700,
+            fontSize: isCompact ? 13 : 14,
+          ),
+        ),
+        if (user.personalEmail != null)
+          Text(
+            user.personalEmail!,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.black.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w700,
+              fontSize: isCompact ? 13 : 14,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value});
+  const _StatCard({
+    required this.label,
+    required this.value,
+    this.isCompact = false,
+  });
 
   final String label;
   final String value;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
@@ -360,17 +435,20 @@ class _StatCard extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(
+            textAlign: TextAlign.center,
+            style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.w900,
-              fontSize: 28,
+              fontSize: isCompact ? 22 : 28,
             ),
           ),
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
+            textAlign: TextAlign.center,
+            style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.w800,
+              fontSize: isCompact ? 12 : 14,
             ),
           ),
         ],
@@ -380,10 +458,15 @@ class _StatCard extends StatelessWidget {
 }
 
 class _ReadOnlyField extends StatelessWidget {
-  const _ReadOnlyField({required this.label, required this.value});
+  const _ReadOnlyField({
+    required this.label,
+    required this.value,
+    this.isCompact = false,
+  });
 
   final String label;
   final String value;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
@@ -396,9 +479,10 @@ class _ReadOnlyField extends StatelessWidget {
           background: const Color(0xFFF5F5F5),
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.w800,
+              fontSize: isCompact ? 14 : 16,
             ),
           ),
         ),

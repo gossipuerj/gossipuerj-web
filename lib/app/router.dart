@@ -8,6 +8,7 @@ import "di/service_locator.dart";
 import "../features/auth/presentation/session/session_cubit.dart";
 import "../features/auth/presentation/session/session_state.dart";
 import "../features/pages.dart";
+import "../features/feed/presentation/widgets/feed_composer.dart";
 import "../shared/layout/shell_frame.dart";
 
 NoTransitionPage<void> _noTransitionPage({
@@ -64,6 +65,9 @@ GoRouter createAppRouter() {
                 currentPath: state.uri.path,
                 isLoggedIn: sessionState.isAuthenticated,
                 onNavigate: (path) => context.go(path),
+                floatingActionButton: state.uri.path == "/"
+                    ? const FeedComposerFab()
+                    : null,
                 child: child,
               );
             },
