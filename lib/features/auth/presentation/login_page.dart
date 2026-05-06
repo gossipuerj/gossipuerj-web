@@ -40,6 +40,56 @@ class _LoginPageState extends State<LoginPage> {
     return isValid;
   }
 
+  void _showEmailSentDialog({
+    required BuildContext context,
+    required AuthState state,
+  }) {
+    final isLoginFlow = state.status == AuthStatus.magicLinkSent;
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.35),
+      builder: (context) => GlossipDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GlossipDialogHeader(
+              title: isLoginFlow ? "Link enviado" : "Cadastro recebido",
+              eyebrow: isLoginFlow ? "Entrar" : "Registrar",
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Enviamos um link para ${state.email}. Abra seu email para continuar.",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.outfit(
+                color: Colors.black.withValues(alpha: 0.65),
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+            const SizedBox(height: 24),
+            GlossipButton(
+              label: "Fechar",
+              onPressed: () {
+                Navigator.of(context).pop();
+                this.context.read<AuthCubit>().clearFeedback();
+              },
+              expanded: true,
+              emphasizedLabel: true,
+              foreground: Colors.white,
+              background: GlossipColors.primary,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     emailController.dispose();
@@ -108,13 +158,7 @@ class _LoginPageState extends State<LoginPage> {
         if (state.status == AuthStatus.magicLinkSent ||
             state.status == AuthStatus.registrationSubmitted) {
           setState(() => loginEmailError = null);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "Enviamos um link para ${state.email}. Abra seu email para continuar.",
-              ),
-            ),
-          );
+          _showEmailSentDialog(context: context, state: state);
         }
       },
       builder: (context, state) {

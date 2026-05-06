@@ -214,18 +214,29 @@ class _CrushesPageState extends State<CrushesPage> {
               ),
             )
           else
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: filtered.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columns,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
-                childAspectRatio: 0.72,
-              ),
-              itemBuilder: (context, index) =>
-                  ProfileGridCard(profile: filtered[index]),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final itemWidth =
+                    (constraints.maxWidth - ((columns - 1) * 20)) / columns;
+
+                // The card includes a square avatar plus metadata/actions below it,
+                // so a fixed aspect ratio is too short during responsive relayouts.
+                final itemHeight = itemWidth + 240;
+
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: filtered.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
+                    mainAxisExtent: itemHeight,
+                  ),
+                  itemBuilder: (context, index) =>
+                      ProfileGridCard(profile: filtered[index]),
+                );
+              },
             ),
         ],
       ),

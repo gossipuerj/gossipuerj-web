@@ -19,7 +19,7 @@ class ErrorMapper {
 
       if (error.type == DioExceptionType.connectionError) {
         return const AppException(
-          "Não foi possível se conectar à API. Verifique se o backend está online.",
+          "Ocorreu um erro da nossa parte. Estamos trabalhando para resolver!",
         );
       }
 

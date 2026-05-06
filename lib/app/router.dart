@@ -1,6 +1,6 @@
 import "dart:async";
 
-import "package:flutter/foundation.dart";
+import "package:flutter/widgets.dart";
 import "package:flutter_bloc/flutter_bloc.dart";
 import "package:go_router/go_router.dart";
 
@@ -9,6 +9,11 @@ import "../features/auth/presentation/session/session_cubit.dart";
 import "../features/auth/presentation/session/session_state.dart";
 import "../features/pages.dart";
 import "../shared/layout/shell_frame.dart";
+
+NoTransitionPage<void> _noTransitionPage({
+  required LocalKey key,
+  required Widget child,
+}) => NoTransitionPage<void>(key: key, child: child);
 
 class RouterRefreshNotifier extends ChangeNotifier {
   RouterRefreshNotifier(Stream<dynamic> stream) {
@@ -33,7 +38,7 @@ GoRouter createAppRouter() {
       final location = state.uri.path;
       final isLoggedIn = sessionState.status == SessionStatus.authenticated;
       final isLoginRoute = location == "/login";
-      final isVerifyRoute = location == "/auth/verify";
+      final isVerifyRoute = location == "/verificar";
       final isProfileRoute = location == "/profile";
 
       if (!isLoggedIn && isProfileRoute) {
@@ -65,33 +70,56 @@ GoRouter createAppRouter() {
           );
         },
         routes: [
-          GoRoute(path: "/", builder: (context, state) => const FeedPage()),
           GoRoute(
-            path: "/login",
-            builder: (context, state) => const LoginPage(),
+            path: "/",
+            pageBuilder: (context, state) => _noTransitionPage(
+              key: state.pageKey,
+              child: const FeedPage(),
+            ),
           ),
           GoRoute(
-            path: "/auth/verify",
-            builder: (context, state) =>
-                VerifyPage(token: state.uri.queryParameters["token"]),
+            path: "/login",
+            pageBuilder: (context, state) => _noTransitionPage(
+              key: state.pageKey,
+              child: const LoginPage(),
+            ),
+          ),
+          GoRoute(
+            path: "/verificar",
+            pageBuilder: (context, state) => _noTransitionPage(
+              key: state.pageKey,
+              child: VerifyPage(token: state.uri.queryParameters["token"]),
+            ),
           ),
           GoRoute(
             path: "/crushes",
-            builder: (context, state) => const CrushesPage(),
+            pageBuilder: (context, state) => _noTransitionPage(
+              key: state.pageKey,
+              child: const CrushesPage(),
+            ),
           ),
           GoRoute(
             path: "/eventos",
-            builder: (context, state) => const EventsPage(),
+            pageBuilder: (context, state) => _noTransitionPage(
+              key: state.pageKey,
+              child: const EventsPage(),
+            ),
           ),
           GoRoute(
             path: "/messages",
-            builder: (context, state) => MessagesPage(
-              initialUsername: state.uri.queryParameters["user"],
+            pageBuilder: (context, state) => _noTransitionPage(
+              key: state.pageKey,
+              child: MessagesPage(
+                initialUsername: state.uri.queryParameters["user"],
+              ),
             ),
           ),
           GoRoute(
             path: "/profile",
-            builder: (context, state) => const ProfilePage(),
+            pageBuilder: (context, state) => _noTransitionPage(
+              key: state.pageKey,
+              child: const ProfilePage(),
+            ),
           ),
         ],
       ),

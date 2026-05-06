@@ -34,7 +34,12 @@ class _VerifyPageState extends State<VerifyPage> {
     if (token == null || token.isEmpty) {
       return;
     }
-    context.read<AuthCubit>().verify(token);
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      if (!mounted) {
+        return;
+      }
+      context.read<AuthCubit>().verify(token);
+    });
   }
 
   @override
@@ -92,10 +97,12 @@ class _VerifyPageState extends State<VerifyPage> {
                     const SizedBox(height: 32),
                     Text(
                       tokenMissing
-                          ? "Link inválido"
-                          : state.status == AuthStatus.failure
-                          ? "Não foi possível validar"
-                          : "Validando seu acesso",
+                           ? "Link inválido"
+                           : state.status == AuthStatus.failure
+                           ? "Não foi possível validar"
+                           : state.status == AuthStatus.verified
+                           ? "Acesso confirmado"
+                           : "Validando seu link",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.outfit(
                         fontSize: 24,
@@ -106,10 +113,12 @@ class _VerifyPageState extends State<VerifyPage> {
                     const SizedBox(height: 8),
                     Text(
                       tokenMissing
-                          ? "Esse link não contém um token válido."
-                          : state.status == AuthStatus.failure
-                          ? (state.message ?? "O link expirou ou é inválido.")
-                          : "Aguarde enquanto concluímos seu login.",
+                           ? "Esse link não contém um token válido."
+                           : state.status == AuthStatus.failure
+                           ? (state.message ?? "O link expirou ou é inválido.")
+                           : state.status == AuthStatus.verified
+                           ? "Estamos preparando sua sessão no Gossip UERJ."
+                           : "Aguarde enquanto confirmamos seu acesso com seguranca.",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.outfit(
                         fontSize: 15,
@@ -118,8 +127,10 @@ class _VerifyPageState extends State<VerifyPage> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    if (!tokenMissing && state.status == AuthStatus.submitting)
-                      const Center(child: CircularProgressIndicator()),
+                    if (!tokenMissing && state.status != AuthStatus.failure)
+                      const Center(
+                        child: GlossipSpinnerProgressIndicator(radius: 46),
+                      ),
                     if (tokenMissing || state.status == AuthStatus.failure)
                       _VerifyButton(
                         label: "Voltar ao login",
