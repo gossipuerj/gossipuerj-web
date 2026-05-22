@@ -31,7 +31,7 @@ class AppConfig {
 
 enum RuntimeFlavor {
   local("local", "http://localhost:8080/"),
-  staging("staging", "http://localhost:8080/"),
+  staging("staging", "http://163.176.222.215:8080/"),
   prod("prod", "http://163.176.222.215:8080/");
 
   const RuntimeFlavor(this.name, this.defaultBaseUrl);
