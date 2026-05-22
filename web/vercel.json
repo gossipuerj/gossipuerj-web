@@ -1,5 +1,5 @@
 {
-  "buildCommand": "git clone https://github.com/flutter/flutter.git -b stable --depth 1 /tmp/flutter && cd $VERCEL_PROJECT_PATH && /tmp/flutter/bin/flutter precache --web && /tmp/flutter/bin/flutter build web --release",
+  "buildCommand": "pwd && ls && git clone https://github.com/flutter/flutter.git -b stable --depth 1 /tmp/flutter && /tmp/flutter/bin/flutter precache --web && /tmp/flutter/bin/flutter build web --release",
   "outputDirectory": "build/web",
   "framework": null
 }
