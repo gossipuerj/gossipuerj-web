@@ -1,11 +1,11 @@
 {
-    "name": "GlossipUerj",
-    "short_name": "Glossip",
+    "name": "GossipUerj",
+    "short_name": "Gossip",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ff007f",
     "theme_color": "#ffff00",
-    "description": "Acompanhe as fofocas mais picantes e anônimas da UERJ. O que acontece no campus, fica no Glossip.",
+    "description": "Acompanhe as fofocas mais picantes e anônimas da UERJ. O que acontece no campus, fica no Gossip.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
