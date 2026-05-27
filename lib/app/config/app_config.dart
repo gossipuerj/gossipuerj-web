@@ -16,12 +16,26 @@ class AppConfig {
 
     return AppConfig(
       flavor: flavor,
-      apiBaseUrl: const String.fromEnvironment(
-        "API_BASE_URL",
-        defaultValue: "",
-      ).ifEmpty(flavor.defaultBaseUrl),
+      apiBaseUrl: resolveApiBaseUrl(
+        isDebug: kDebugMode,
+        overrideBaseUrl: const String.fromEnvironment(
+          "API_BASE_URL",
+          defaultValue: "",
+        ),
+      ),
       isDebug: kDebugMode,
     );
+  }
+
+  static String resolveApiBaseUrl({
+    required bool isDebug,
+    String overrideBaseUrl = "",
+  }) {
+    if (overrideBaseUrl.isNotEmpty) {
+      return overrideBaseUrl;
+    }
+
+    return isDebug ? "http://localhost:8080/" : "http://localhost:8080/api";
   }
 
   final RuntimeFlavor flavor;
@@ -30,14 +44,13 @@ class AppConfig {
 }
 
 enum RuntimeFlavor {
-  local("local", "http://localhost:8080/"),
-  staging("staging", "http://localhost:8080/"),
-  prod("prod", "http://163.176.222.215:8080/");
+  local("local"),
+  staging("staging"),
+  prod("prod");
 
-  const RuntimeFlavor(this.name, this.defaultBaseUrl);
+  const RuntimeFlavor(this.name);
 
   final String name;
-  final String defaultBaseUrl;
 
   static RuntimeFlavor fromName(String value) {
     for (final flavor in RuntimeFlavor.values) {
@@ -47,8 +60,4 @@ enum RuntimeFlavor {
     }
     return RuntimeFlavor.local;
   }
-}
-
-extension on String {
-  String ifEmpty(String fallback) => isEmpty ? fallback : this;
 }
