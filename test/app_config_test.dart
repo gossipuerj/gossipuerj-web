@@ -4,24 +4,24 @@ import "package:flutter_app/app/config/app_config.dart";
 
 void main() {
   group("AppConfig.resolveApiBaseUrl", () {
-    test("uses localhost root in debug", () {
+    test("uses localhost for local flavor", () {
       expect(
-        AppConfig.resolveApiBaseUrl(isDebug: true),
-        "http://localhost:8080/",
+        AppConfig.resolveApiBaseUrl(flavor: RuntimeFlavor.local),
+        "http://localhost:8080",
       );
     });
 
-    test("uses localhost api prefix in release", () {
+    test("uses production domain for prod flavor", () {
       expect(
-        AppConfig.resolveApiBaseUrl(isDebug: false),
-        "http://localhost:8080/api",
+        AppConfig.resolveApiBaseUrl(flavor: RuntimeFlavor.prod),
+        "https://www.gossipuerj.com.br",
       );
     });
 
     test("honors explicit override", () {
       expect(
         AppConfig.resolveApiBaseUrl(
-          isDebug: false,
+          flavor: RuntimeFlavor.prod,
           overrideBaseUrl: "https://example.com/custom",
         ),
         "https://example.com/custom",
