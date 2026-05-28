@@ -17,7 +17,7 @@ class AppConfig {
     return AppConfig(
       flavor: flavor,
       apiBaseUrl: resolveApiBaseUrl(
-        isDebug: kDebugMode,
+        flavor: flavor,
         overrideBaseUrl: const String.fromEnvironment(
           "API_BASE_URL",
           defaultValue: "",
@@ -28,14 +28,18 @@ class AppConfig {
   }
 
   static String resolveApiBaseUrl({
-    required bool isDebug,
+    required RuntimeFlavor flavor,
     String overrideBaseUrl = "",
   }) {
     if (overrideBaseUrl.isNotEmpty) {
       return overrideBaseUrl;
     }
 
-    return isDebug ? "http://localhost:8080/" : "http://localhost:8080/api";
+    if (flavor == RuntimeFlavor.prod) {
+      return "https://www.gossipuerj.com.br";
+    }
+
+    return "http://localhost:8080";
   }
 
   final RuntimeFlavor flavor;

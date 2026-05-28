@@ -6,7 +6,7 @@ class AuthRemoteDataSource {
   final Dio _dio;
 
   Future<void> requestLoginMagicLink(String email) async {
-    await _dio.post("/api/v1/auth/login", data: {"email": email});
+    await _dio.post("/api/auth/login", data: {"email": email});
   }
 
   Future<void> register({
@@ -16,7 +16,7 @@ class AuthRemoteDataSource {
     String? personalEmail,
   }) async {
     await _dio.post(
-      "/api/v1/auth/register",
+      "/api/auth/register",
       data: {
         "firstName": firstName,
         "lastName": lastName,
@@ -28,14 +28,14 @@ class AuthRemoteDataSource {
 
   Future<Map<String, dynamic>> verifyMagicLink(String token) async {
     final response = await _dio.post(
-      "/api/v1/auth/verify",
+      "/api/auth/verify",
       data: {"token": token},
     );
     return response.data as Map<String, dynamic>;
   }
 
   Future<Map<String, dynamic>> getMe() async {
-    final response = await _dio.get("/api/v1/auth/me");
+    final response = await _dio.get("/api/auth/me");
     return response.data as Map<String, dynamic>;
   }
 
