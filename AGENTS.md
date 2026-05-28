@@ -7,7 +7,7 @@
 ## Runtime
 
 - Runtime config is compile-time only via `--dart-define`. Supported `APP_FLAVOR` values are `local`, `staging`, and `prod`; `API_BASE_URL` overrides the flavor default in `lib/app/config/app_config.dart`.
-- `local` and `staging` both default to `http://localhost:8080/`; `prod` defaults to `http://163.176.222.215:8080/`.
+- `local` and `staging` both default to `http://localhost:8080/`; `prod` defaults to `https://www.gossipuerj.com.br/`.
 - Web routing uses `usePathUrlStrategy()` in `lib/app/platform/platform_setup.dart`; deploys need SPA rewrites for deep links to work.
 
 ## Architecture

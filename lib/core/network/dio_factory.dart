@@ -19,6 +19,17 @@ class DioFactory {
       ),
     );
 
+    if (_usesApiPrefix(config.apiBaseUrl)) {
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            options.path = _stripApiPrefix(options.path);
+            handler.next(options);
+          },
+        ),
+      );
+    }
+
     dio.interceptors.add(AuthInterceptor(tokenStore));
     if (config.isDebug) {
       dio.interceptors.add(
@@ -27,4 +38,23 @@ class DioFactory {
     }
     return dio;
   }
+}
+
+String _stripApiPrefix(String path) {
+  if (!path.startsWith("/api")) {
+    return path;
+  }
+
+  final normalizedPath = path.substring(4);
+  return normalizedPath.isEmpty ? "/" : normalizedPath;
+}
+
+bool _usesApiPrefix(String baseUrl) {
+  final uri = Uri.tryParse(baseUrl);
+  if (uri == null) {
+    return baseUrl.endsWith("/api") || baseUrl.endsWith("/api/");
+  }
+
+  final normalizedPath = uri.path.replaceFirst(RegExp(r"/+$"), "");
+  return normalizedPath == "/api";
 }
