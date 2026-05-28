@@ -11,7 +11,7 @@ class FeedRemoteDataSource {
     int pageSize = 20,
   }) async {
     final response = await _dio.get(
-      "/api/posts",
+      "/api/v1/posts",
       queryParameters: {
         "category": category,
         "page": page,
@@ -27,7 +27,7 @@ class FeedRemoteDataSource {
     required String category,
   }) async {
     final response = await _dio.post(
-      "/api/posts",
+      "/api/v1/posts",
       data: {"title": title, "content": content, "category": category},
     );
     return response.data as Map<String, dynamic>;
